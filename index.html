@@ -7,60 +7,60 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-[#1a1a2e] text-white font-sans">
-  <div class="container mx-auto p-6 text-center">
+  <div class="container mx-auto p-6 text-center max-w-2xl">
 
     <!-- Setup Screen -->
     <div id="setupScreen">
-      <h1 class="text-3xl font-bold mb-6">Configurar Jogo</h1>
+      <h1 class="text-4xl md:text-5xl font-bold mb-8">Configurar Jogo</h1>
       
-      <label class="block mb-2">Número de jogadores</label>
-      <input id="playerCount" type="number" value="5" min="3" max="10" class="text-black p-2 rounded mb-4 w-32">
+      <label class="block mb-2 text-lg">Número de jogadores</label>
+      <input id="playerCount" type="number" value="5" min="3" max="10" class="text-black p-3 rounded mb-6 w-40">
 
-      <label class="block mb-2">Tempo da Partida (minutos)</label>
-      <input id="gameTime" type="number" value="5" min="1" max="30" class="text-black p-2 rounded mb-4 w-32">
+      <label class="block mb-2 text-lg">Tempo da Partida (minutos)</label>
+      <input id="gameTime" type="number" value="5" min="1" max="30" class="text-black p-3 rounded mb-6 w-40">
 
-      <label class="block mb-2">Palavra Secreta</label>
-      <input id="secretWord" type="text" class="text-black p-2 rounded mb-4 w-full">
+      <label class="block mb-2 text-lg">Palavra Secreta</label>
+      <input id="secretWord" type="text" class="text-black p-3 rounded mb-6 w-full text-lg">
 
-      <label class="block mb-2">Dica para o impostor</label>
-      <input id="gameHint" type="text" class="text-black p-2 rounded mb-4 w-full">
+      <label class="block mb-2 text-lg">Dica para o impostor</label>
+      <input id="gameHint" type="text" class="text-black p-3 rounded mb-6 w-full text-lg">
 
-      <button onclick="chooseRandomWord()" class="bg-orange-500 hover:bg-orange-600 px-6 py-3 rounded-lg font-bold mb-4">Escolher Palavra Aleatória</button>
+      <button onclick="chooseRandomWord()" class="bg-orange-500 hover:bg-orange-600 px-8 py-4 rounded-lg font-bold mb-6 text-lg">Escolher Palavra Aleatória</button>
       
-      <button onclick="startGame()" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-bold">Iniciar</button>
+      <button onclick="startGame()" class="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg font-bold text-lg">Iniciar</button>
     </div>
 
     <!-- Role Reveal Screen -->
     <div id="roleScreen" class="hidden">
-      <h2 id="roleTitle" class="text-2xl font-bold mb-6"></h2>
-      <div id="wordBox" class="hidden text-3xl font-bold p-6 bg-gray-800 rounded-lg mb-6"></div>
-      <button id="seeWordBtn" onclick="seeWord()" class="bg-green-600 px-6 py-3 rounded-lg font-bold mb-3">Ver Palavra</button>
-      <button id="hideWordBtn" onclick="hideWord()" class="hidden bg-yellow-600 px-6 py-3 rounded-lg font-bold mb-3">Ocultar</button>
-      <button id="nextBtn" onclick="nextPlayer()" class="bg-blue-600 px-6 py-3 rounded-lg font-bold">Próximo Jogador</button>
-      <button id="startMatchBtn" onclick="startMatch()" class="hidden bg-purple-600 px-6 py-3 rounded-lg font-bold">Iniciar Partida</button>
+      <h2 id="roleTitle" class="text-3xl md:text-4xl font-bold mb-6"></h2>
+      <div id="wordBox" class="hidden text-4xl md:text-5xl font-extrabold p-8 bg-gray-800 rounded-lg mb-6"></div>
+      <button id="seeWordBtn" onclick="seeWord()" class="bg-green-600 px-8 py-4 rounded-lg font-bold mb-4 text-lg">Ver Palavra</button>
+      <button id="hideWordBtn" onclick="hideWord()" class="hidden bg-yellow-600 px-8 py-4 rounded-lg font-bold mb-4 text-lg">Ocultar</button>
+      <button id="nextBtn" onclick="nextPlayer()" class="bg-blue-600 px-8 py-4 rounded-lg font-bold text-lg mb-4">Próximo Jogador</button>
+      <button id="startMatchBtn" onclick="startMatch()" class="hidden bg-purple-600 px-8 py-4 rounded-lg font-bold text-lg">Iniciar Partida</button>
     </div>
 
     <!-- Match Screen -->
     <div id="matchScreen" class="hidden">
-      <h2 class="text-2xl font-bold mb-4">Partida em andamento</h2>
-      <p id="turnInfo" class="mb-4 text-lg"></p>
-      <div id="timer" class="text-4xl font-bold text-green-400 mb-6"></div>
-      <button onclick="endMatch()" class="bg-red-600 px-6 py-3 rounded-lg font-bold">Encerrar e Votar</button>
+      <h2 class="text-3xl md:text-4xl font-bold mb-6">Partida em andamento</h2>
+      <p id="turnInfo" class="mb-6 text-xl md:text-2xl"></p>
+      <div id="timer" class="text-5xl md:text-6xl font-bold text-green-400 mb-8"></div>
+      <button onclick="endMatch()" class="bg-red-600 px-8 py-4 rounded-lg font-bold text-lg">Encerrar e Votar</button>
     </div>
 
     <!-- Voting Screen -->
     <div id="votingScreen" class="hidden">
-      <h2 class="text-2xl font-bold mb-6">Quem é o impostor?</h2>
+      <h2 class="text-3xl md:text-4xl font-bold mb-8">Quem é o impostor?</h2>
       <div id="voteOptions" class="grid gap-4"></div>
     </div>
 
     <!-- Result Screen -->
     <div id="resultScreen" class="hidden">
-      <h2 id="resultTitle" class="text-3xl font-bold mb-6"></h2>
-      <p id="resultMessage" class="mb-6 text-xl"></p>
-      <p class="text-lg">A palavra era:</p>
-      <div id="revealWord" class="text-3xl font-bold p-4 bg-gray-800 rounded-lg mb-6"></div>
-      <button onclick="resetGame()" class="bg-green-600 px-6 py-3 rounded-lg font-bold">Novo Jogo</button>
+      <h2 id="resultTitle" class="text-4xl md:text-5xl font-bold mb-6"></h2>
+      <p id="resultMessage" class="mb-6 text-2xl md:text-3xl"></p>
+      <p class="text-xl md:text-2xl">A palavra era:</p>
+      <div id="revealWord" class="text-4xl md:text-5xl font-extrabold p-6 bg-gray-800 rounded-lg mb-8"></div>
+      <button onclick="resetGame()" class="bg-green-600 px-8 py-4 rounded-lg font-bold text-lg">Novo Jogo</button>
     </div>
 
   </div>
@@ -82,7 +82,7 @@ const wordList = [
   { word: "Livro", hint: "Objeto" }
 ];
 
-let lastImpostor = null; // para evitar repetição consecutiva
+let lastImpostor = null;
 
 const gameState = {
   players: [],
@@ -129,7 +129,6 @@ function startGame() {
   showRoleScreen();
 }
 
-// Tela de revelar função e palavra
 function showRoleScreen() {
   document.getElementById("roleScreen").classList.remove("hidden");
   document.getElementById("wordBox").classList.add("hidden");
@@ -147,7 +146,6 @@ function showRoleScreen() {
   }
 }
 
-// Ver palavra + se é impostor
 function seeWord() {
   const wordBox = document.getElementById("wordBox");
   wordBox.classList.remove("hidden");
@@ -223,7 +221,7 @@ function showVotingScreen() {
   gameState.players.forEach((p, idx) => {
     if (idx === 0) return;
     const btn = document.createElement("button");
-    btn.className = "bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-bold";
+    btn.className = "bg-red-600 hover:bg-red-700 px-8 py-4 rounded-lg font-bold text-lg";
     btn.textContent = `Votar em ${p}`;
     btn.onclick = () => vote(idx);
     voteOptions.appendChild(btn);
