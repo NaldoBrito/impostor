@@ -6,14 +6,16 @@
 <title>Palavra do Impostor</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  /* Transição de telas */
+  /* Fade-in/fade-out com slide */
   .fade {
     opacity: 0;
+    transform: translateY(20px);
     pointer-events: none;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.5s ease, transform 0.5s ease;
   }
   .fade.show {
     opacity: 1;
+    transform: translateY(0);
     pointer-events: auto;
   }
 
@@ -23,13 +25,13 @@
     stroke-linecap: round;
     stroke-width: 16;
     fill: none;
+    transition: stroke-dashoffset 0.2s linear, stroke 0.5s linear;
   }
 
   /* Responsividade de textos */
   h1 { font-size: clamp(2rem, 5vw, 4rem); }
   h2 { font-size: clamp(1.5rem, 4vw, 3rem); }
   p, button, input { font-size: clamp(1rem, 2.5vw, 1.5rem); }
-
 </style>
 </head>
 <body class="bg-[#1a1a2e] text-white font-sans">
@@ -70,7 +72,7 @@
   <div id="matchScreen" class="fade">
     <h2 class="mb-6 font-bold">Partida em andamento</h2>
     <p id="turnInfo" class="mb-6"></p>
-    <div class="flex justify-center mb-8">
+    <div class="flex justify-center mb-8 relative">
       <svg width="clamp(150px,30vw,250px)" height="clamp(150px,30vw,250px)">
         <circle cx="100" cy="100" r="90" class="timer-circle" stroke="#10b981" stroke-dasharray="565.48" stroke-dashoffset="565.48"></circle>
         <text id="timerText" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#10b981" font-weight="bold">0:00</text>
@@ -149,12 +151,10 @@ function startGame() {
 }
 
 function showRoleScreen() {
-  const wordBox = document.getElementById("wordBox");
-  wordBox.classList.add("hidden");
+  document.getElementById("wordBox").classList.add("hidden");
   document.getElementById("seeWordBtn").classList.remove("hidden");
   document.getElementById("hideWordBtn").classList.add("hidden");
   document.getElementById("roleTitle").textContent = `Passe para ${gameState.players[gameState.currentPlayer]}`;
-
   if (gameState.currentPlayer === gameState.players.length - 1) {
     document.getElementById("nextBtn").classList.add("hidden");
     document.getElementById("startMatchBtn").classList.remove("hidden");
@@ -177,20 +177,14 @@ function seeWord() {
   const impostorInfo = document.createElement("p");
   impostorInfo.className = "mt-4 font-bold";
   impostorInfo.style.color = gameState.currentPlayer === gameState.impostorIndex ? "red" : "lime";
-  impostorInfo.textContent = gameState.currentPlayer === gameState.impostorIndex 
-    ? "Você é o impostor!" 
-    : "Você NÃO é o impostor!";
+  impostorInfo.textContent = gameState.currentPlayer === gameState.impostorIndex ? "Você é o impostor!" : "Você NÃO é o impostor!";
 
   const existingInfo = wordBox.querySelector("p");
   if (existingInfo) wordBox.removeChild(existingInfo);
   wordBox.appendChild(impostorInfo);
 }
 
-function hideWord() {
-  document.getElementById("wordBox").classList.add("hidden");
-  document.getElementById("seeWordBtn").classList.remove("hidden");
-  document.getElementById("hideWordBtn").classList.add("hidden");
-}
+function hideWord() { document.getElementById("wordBox").classList.add("hidden"); document.getElementById("seeWordBtn").classList.remove("hidden"); document.getElementById("hideWordBtn").classList.add("hidden"); }
 
 function nextPlayer() { gameState.currentPlayer++; showRoleScreen(); }
 
@@ -209,13 +203,6 @@ function startTimer() {
   circle.style.strokeDasharray = circumference;
   circle.style.strokeDashoffset = circumference;
 
-  function interpolateColor(percent) {
-    const r = Math.floor(16 + (248 - 16) * percent);
-    const g = Math.floor(185 - (185 - 124) * percent);
-    const b = Math.floor(129 - (129 - 71) * percent);
-    return `rgb(${r},${g},${b})`;
-  }
-
   function updateTimer() {
     let min = Math.floor(gameState.remainingTime / 60);
     let sec = gameState.remainingTime % 60;
@@ -223,8 +210,7 @@ function startTimer() {
 
     const percent = 1 - (gameState.remainingTime / (gameState.time * 60));
     circle.style.strokeDashoffset = circumference * (1 - percent);
-    circle.style.stroke = interpolateColor(percent);
-    circle.style.transform = `rotate(${360 * percent - 90}deg)`;
+    circle.style.stroke = `hsl(${120 - percent * 120}, 100%, 50%)`; // gradiente verde -> vermelho
 
     if (gameState.remainingTime <= 0) { clearInterval(gameState.timer); endMatch(); }
     gameState.remainingTime--;
@@ -234,13 +220,12 @@ function startTimer() {
   gameState.timer = setInterval(updateTimer, 1000);
 }
 
-function endMatch() { clearInterval(gameState.timer); showScreen('votingScreen'); }
+function endMatch() { clearInterval(gameState.timer); showScreen('votingScreen'); showVotingScreen(); }
 
 function showVotingScreen() {
   const voteOptions = document.getElementById("voteOptions");
   voteOptions.innerHTML = '';
-  gameState.players.forEach((p, idx) => {
-    if (idx === 0) return;
+  gameState.players.forEach((p, idx) => { if (idx === 0) return;
     const btn = document.createElement("button");
     btn.className = "bg-red-600 hover:bg-red-700 px-8 py-4 rounded-lg font-bold";
     btn.textContent = `Votar em ${p}`;
@@ -256,7 +241,6 @@ function vote(votedIndex) {
 
 function showResult(votedIndex) {
   document.getElementById("revealWord").textContent = gameState.secretWord;
-
   if (votedIndex === gameState.impostorIndex) {
     document.getElementById("resultTitle").textContent = "Vitória dos Jogadores!";
     document.getElementById("resultMessage").textContent = `${gameState.players[votedIndex]} era o impostor!`;
@@ -267,7 +251,6 @@ function showResult(votedIndex) {
 }
 
 function resetGame() { showScreen('setupScreen'); }
-
 </script>
 </body>
 </html>
