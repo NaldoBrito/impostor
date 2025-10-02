@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Palavra do Impostor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#1a1a2e] text-white font-sans">
+  <div class="container mx-auto p-6 text-center">
+
+    <!-- Setup Screen -->
+    <div id="setupScreen">
+      <h1 class="text-3xl font-bold mb-6">Configurar Jogo</h1>
+      
+      <label class="block mb-2">Número de jogadores</label>
+      <input id="playerCount" type="number" value="5" min="3" max="10" class="text-black p-2 rounded mb-4 w-32">
+
+      <label class="block mb-2">Tempo da Partida (minutos)</label>
+      <input id="gameTime" type="number" value="5" min="1" max="30" class="text-black p-2 rounded mb-4 w-32">
+
+      <label class="block mb-2">Palavra Secreta</label>
+      <input id="secretWord" type="text" class="text-black p-2 rounded mb-4 w-full">
+
+      <label class="block mb-2">Dica para o impostor</label>
+      <input id="gameHint" type="text" class="text-black p-2 rounded mb-4 w-full">
+
+      <button onclick="chooseRandomWord()" class="bg-orange-500 hover:bg-orange-600 px-6 py-3 rounded-lg font-bold mb-4">Escolher Palavra Aleatória</button>
+      
+      <button onclick="startGame()" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-bold">Iniciar</button>
+    </div>
+
+    <!-- Role Reveal Screen -->
+    <div id="roleScreen" class="hidden">
+      <h2 id="roleTitle" class="text-2xl font-bold mb-6"></h2>
+      <div id="wordBox" class="hidden text-3xl font-bold p-6 bg-gray-800 rounded-lg mb-6"></div>
+      <button id="seeWordBtn" onclick="seeWord()" class="bg-green-600 px-6 py-3 rounded-lg font-bold mb-3">Ver Palavra</button>
+      <button id="hideWordBtn" onclick="hideWord()" class="hidden bg-yellow-600 px-6 py-3 rounded-lg font-bold mb-3">Ocultar</button>
+      <button id="nextBtn" onclick="nextPlayer()" class="bg-blue-600 px-6 py-3 rounded-lg font-bold">Próximo Jogador</button>
+      <button id="startMatchBtn" onclick="startMatch()" class="hidden bg-purple-600 px-6 py-3 rounded-lg font-bold">Iniciar Partida</button>
+    </div>
+
+    <!-- Match Screen -->
+    <div id="matchScreen" class="hidden">
+      <h2 class="text-2xl font-bold mb-4">Partida em andamento</h2>
+      <p id="turnInfo" class="mb-4 text-lg"></p>
+      <div id="timer" class="text-4xl font-bold text-green-400 mb-6"></div>
+      <button onclick="endMatch()" class="bg-red-600 px-6 py-3 rounded-lg font-bold">Encerrar e Votar</button>
+    </div>
+
+    <!-- Voting Screen -->
+    <div id="votingScreen" class="hidden">
+      <h2 class="text-2xl font-bold mb-6">Quem é o impostor?</h2>
+      <div id="voteOptions" class="grid gap-4"></div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="resultScreen" class="hidden">
+      <h2 id="resultTitle" class="text-3xl font-bold mb-6"></h2>
+      <p id="resultMessage" class="mb-6 text-xl"></p>
+      <p class="text-lg">A palavra era:</p>
+      <div id="revealWord" class="text-3xl font-bold p-4 bg-gray-800 rounded-lg mb-6"></div>
+      <button onclick="resetGame()" class="bg-green-600 px-6 py-3 rounded-lg font-bold">Novo Jogo</button>
+    </div>
+
+  </div>
+
+<script>
+// Lista de palavras com dicas
+const wordList = [
+  { word: "Manga", hint: "Fruta" },
+  { word: "Banana", hint: "Fruta" },
+  { word: "Morango", hint: "Fruta" },
+  { word: "Abacaxi", hint: "Fruta" },
+  { word: "Leão", hint: "Animal" },
+  { word: "Elefante", hint: "Animal" },
+  { word: "Cavalo", hint: "Animal" },
+  { word: "Tigre", hint: "Animal" },
+  { word: "Computador", hint: "Objeto" },
+  { word: "Cadeira", hint: "Objeto" },
+  { word: "Celular", hint: "Objeto" },
+  { word: "Livro", hint: "Objeto" }
+];
+
+let lastImpostor = null; // para evitar repetição consecutiva
+
+const gameState = {
+  players: [],
+  impostorIndex: null,
+  currentPlayer: 1,
+  secretWord: '',
+  hint: '',
+  time: 0,
+  timer: null,
+  remainingTime: 0
+};
+
+// Escolhe palavra aleatória
+function chooseRandomWord() {
+  const randomIndex = Math.floor(Math.random() * wordList.length);
+  const chosen = wordList[randomIndex];
+  document.getElementById("secretWord").value = chosen.word;
+  document.getElementById("gameHint").value = chosen.hint;
+}
+
+// Escolhe impostor aleatório, sem repetir consecutivo
+function chooseImpostor(count) {
+  let impostor;
+  do {
+    impostor = Math.floor(Math.random() * (count - 1)) + 1;
+  } while (impostor === lastImpostor);
+  lastImpostor = impostor;
+  return impostor;
+}
+
+// Inicia o jogo
+function startGame() {
+  const count = parseInt(document.getElementById("playerCount").value);
+  gameState.secretWord = document.getElementById("secretWord").value.trim();
+  gameState.hint = document.getElementById("gameHint").value.trim();
+  gameState.players = Array.from({length: count}, (_, i) => `Jogador ${i+1}`);
+  gameState.time = parseInt(document.getElementById("gameTime").value);
+  gameState.remainingTime = gameState.time * 60;
+
+  gameState.impostorIndex = chooseImpostor(count);
+  gameState.currentPlayer = 1;
+
+  document.getElementById("setupScreen").classList.add("hidden");
+  showRoleScreen();
+}
+
+// Tela de revelar função e palavra
+function showRoleScreen() {
+  document.getElementById("roleScreen").classList.remove("hidden");
+  document.getElementById("wordBox").classList.add("hidden");
+  document.getElementById("seeWordBtn").classList.remove("hidden");
+  document.getElementById("hideWordBtn").classList.add("hidden");
+
+  document.getElementById("roleTitle").textContent = `Passe para ${gameState.players[gameState.currentPlayer]}`;
+
+  if (gameState.currentPlayer === gameState.players.length - 1) {
+    document.getElementById("nextBtn").classList.add("hidden");
+    document.getElementById("startMatchBtn").classList.remove("hidden");
+  } else {
+    document.getElementById("nextBtn").classList.remove("hidden");
+    document.getElementById("startMatchBtn").classList.add("hidden");
+  }
+}
+
+// Ver palavra + se é impostor
+function seeWord() {
+  const wordBox = document.getElementById("wordBox");
+  wordBox.classList.remove("hidden");
+  document.getElementById("seeWordBtn").classList.add("hidden");
+  document.getElementById("hideWordBtn").classList.remove("hidden");
+
+  if (gameState.currentPlayer === gameState.impostorIndex) {
+    wordBox.textContent = "Dica: " + gameState.hint;
+  } else {
+    wordBox.textContent = gameState.secretWord;
+  }
+
+  const impostorInfo = document.createElement("p");
+  impostorInfo.className = "mt-4 text-lg font-bold";
+  impostorInfo.style.color = gameState.currentPlayer === gameState.impostorIndex ? "red" : "lime";
+  impostorInfo.textContent = gameState.currentPlayer === gameState.impostorIndex 
+    ? "Você é o impostor!" 
+    : "Você NÃO é o impostor!";
+
+  const existingInfo = wordBox.querySelector("p");
+  if (existingInfo) wordBox.removeChild(existingInfo);
+  wordBox.appendChild(impostorInfo);
+}
+
+function hideWord() {
+  document.getElementById("wordBox").classList.add("hidden");
+  document.getElementById("seeWordBtn").classList.remove("hidden");
+  document.getElementById("hideWordBtn").classList.add("hidden");
+}
+
+function nextPlayer() {
+  gameState.currentPlayer++;
+  showRoleScreen();
+}
+
+function startMatch() {
+  document.getElementById("roleScreen").classList.add("hidden");
+  document.getElementById("matchScreen").classList.remove("hidden");
+
+  const starter = Math.floor(Math.random() * (gameState.players.length - 1)) + 1;
+  document.getElementById("turnInfo").textContent = `${gameState.players[starter]} começa a partida!`;
+
+  startTimer();
+}
+
+function startTimer() {
+  const timerDisplay = document.getElementById("timer");
+  function updateTimer() {
+    let min = Math.floor(gameState.remainingTime / 60);
+    let sec = gameState.remainingTime % 60;
+    timerDisplay.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+
+    if (gameState.remainingTime <= 0) {
+      clearInterval(gameState.timer);
+      endMatch();
+    }
+    gameState.remainingTime--;
+  }
+  updateTimer();
+  gameState.timer = setInterval(updateTimer, 1000);
+}
+
+function endMatch() {
+  clearInterval(gameState.timer);
+  document.getElementById("matchScreen").classList.add("hidden");
+  showVotingScreen();
+}
+
+function showVotingScreen() {
+  document.getElementById("votingScreen").classList.remove("hidden");
+  const voteOptions = document.getElementById("voteOptions");
+  voteOptions.innerHTML = '';
+  gameState.players.forEach((p, idx) => {
+    if (idx === 0) return;
+    const btn = document.createElement("button");
+    btn.className = "bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-bold";
+    btn.textContent = `Votar em ${p}`;
+    btn.onclick = () => vote(idx);
+    voteOptions.appendChild(btn);
+  });
+}
+
+function vote(votedIndex) {
+  document.getElementById("votingScreen").classList.add("hidden");
+  showResult(votedIndex);
+}
+
+function showResult(votedIndex) {
+  document.getElementById("resultScreen").classList.remove("hidden");
+  document.getElementById("revealWord").textContent = gameState.secretWord;
+
+  if (votedIndex === gameState.impostorIndex) {
+    document.getElementById("resultTitle").textContent = "Vitória dos Jogadores!";
+    document.getElementById("resultMessage").textContent = `${gameState.players[votedIndex]} era o impostor!`;
+  } else {
+    document.getElementById("resultTitle").textContent = "Vitória do Impostor!";
+    document.getElementById("resultMessage").textContent = `Vocês votaram em ${gameState.players[votedIndex]}, mas o impostor era ${gameState.players[gameState.impostorIndex]}!`;
+  }
+}
+
+function resetGame() {
+  document.getElementById("resultScreen").classList.add("hidden");
+  document.getElementById("setupScreen").classList.remove("hidden");
+}
+</script>
+</body>
+</html>
