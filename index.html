@@ -1,254 +1,350 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Palavra do Impostor</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  .fade { opacity: 0; transform: translateY(20px); pointer-events: none; transition: opacity 0.5s ease, transform 0.5s ease; }
-  .fade.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
-  .timer-circle { transform-origin: 50% 50%; stroke-linecap: round; stroke-width: 16; fill: none; transition: stroke-dashoffset 0.2s linear, stroke 0.5s linear; }
-  h1 { font-size: clamp(2rem, 5vw, 4rem); }
-  h2 { font-size: clamp(1.5rem, 4vw, 3rem); }
-  p, button, input { font-size: clamp(1rem, 2.5vw, 1.3rem); }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo do Impostor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: linear-gradient(to right, #1e293b, #0f172a); color: white; }
+    .fade { transition: opacity 0.5s ease, transform 0.5s ease; }
+    .hidden { display: none; }
+  </style>
 </head>
-<body class="bg-[#1a1a2e] text-white font-sans">
+<body class="flex items-center justify-center min-h-screen">
+  <div id="app" class="w-full max-w-xl p-6 text-center">
+    
+    <!-- Tela de configuração -->
+    <div id="setupScreen" class="fade">
+      <h1 class="text-3xl font-bold mb-6">🎭 Jogo do Impostor</h1>
 
-<div class="container mx-auto p-4 sm:p-6 text-center max-w-2xl">
+      <input id="playerName" type="text" placeholder="Nome do jogador" 
+             class="p-2 rounded text-black w-2/3 mb-4">
+      <button onclick="addPlayer()" 
+              class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">Adicionar Jogador</button>
+      <ul id="playersList" class="mt-4 text-left"></ul>
 
-  <!-- Setup Screen -->
-  <div id="setupScreen" class="fade show">
-    <h1 class="mb-6 font-bold">Configurar Jogo</h1>
-    <div class="flex flex-col gap-4">
-      <div>
-        <label class="block mb-1">Número de jogadores</label>
-        <input id="playerCount" type="number" value="5" min="3" max="10" class="text-black p-3 rounded w-full sm:w-40">
+      <div class="mt-6">
+        <label for="roundTime" class="block mb-2">⏱️ Defina o tempo da rodada (segundos)</label>
+        <input id="roundTime" type="number" value="60" min="15" max="600" 
+               class="p-2 rounded text-black w-32 text-center">
       </div>
-      <div>
-        <label class="block mb-1">Tempo da Partida (minutos)</label>
-        <input id="gameTime" type="number" value="5" min="1" max="30" class="text-black p-3 rounded w-full sm:w-40">
+
+      <button onclick="startGame()" 
+              class="mt-6 bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg">Iniciar Jogo</button>
+    </div>
+
+    <!-- Tela de palavra -->
+    <div id="wordScreen" class="fade hidden">
+      <h2 class="text-2xl font-bold mb-4">👀 Jogador: <span id="currentPlayer"></span></h2>
+      
+      <div id="hiddenWordSection">
+        <p class="mb-4">Toque abaixo para ver sua palavra</p>
+        <button id="toggleWordBtn" onclick="toggleWord()" 
+                class="bg-yellow-500 hover:bg-yellow-600 px-6 py-3 rounded-lg">Ver Palavra</button>
       </div>
-      <div>
-        <label class="block mb-1">Palavra Secreta</label>
-        <input id="secretWord" type="text" class="text-black p-3 rounded w-full">
+
+      <div id="revealedWordSection" class="hidden">
+        <p id="wordHint" class="text-xl mb-2"></p>
+        <p id="wordText" class="text-2xl font-bold mb-6"></p>
       </div>
-      <div>
-        <label class="block mb-1">Dica para o impostor</label>
-        <input id="gameHint" type="text" class="text-black p-3 rounded w-full">
+
+      <button id="nextPlayerBtn" onclick="nextPlayer()" 
+              class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg hidden">Próximo Jogador</button>
+    </div>
+
+    <!-- Tela de jogo -->
+    <div id="gameScreen" class="fade hidden">
+      <h2 class="text-2xl font-bold mb-4">⏳ Rodada em andamento...</h2>
+      <div class="flex justify-center items-center mb-6">
+        <svg id="progressCircle" width="160" height="160">
+          <circle id="circle" cx="80" cy="80" r="70" 
+                  stroke="green" stroke-width="12" fill="none" 
+                  stroke-dasharray="440" stroke-dashoffset="0"
+                  transform="rotate(-90 80 80)" />
+        </svg>
       </div>
+      <p id="timerText" class="text-3xl font-bold"></p>
     </div>
-    <div class="flex flex-col sm:flex-row gap-4 mt-6">
-      <button onclick="chooseRandomWord()" class="bg-orange-500 hover:bg-orange-600 px-6 py-4 rounded-lg font-bold w-full sm:w-auto">Palavra Aleatória</button>
-      <button onclick="startGame()" class="bg-blue-600 hover:bg-blue-700 px-6 py-4 rounded-lg font-bold w-full sm:w-auto">Iniciar</button>
+
+    <!-- Tela de votação -->
+    <div id="votingScreen" class="fade hidden">
+      <h2 class="text-2xl font-bold mb-6">🗳️ Votação</h2>
+      <div id="voteOptions" class="flex flex-col gap-4"></div>
+    </div>
+
+    <!-- Tela de resultado -->
+    <div id="resultScreen" class="fade hidden">
+      <h2 id="resultTitle" class="text-3xl font-bold mb-4"></h2>
+      <p id="resultMessage" class="text-xl mb-2"></p>
+      <p>A palavra era: <span id="revealWord" class="font-bold"></span></p>
+      <button onclick="resetGame()" 
+              class="mt-6 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg">Jogar Novamente</button>
     </div>
   </div>
-
-  <!-- Role Reveal -->
-  <div id="roleScreen" class="fade">
-    <h2 id="roleTitle" class="mb-6 font-bold"></h2>
-    <div id="wordBox" class="hidden p-6 bg-gray-800 rounded-lg mb-6 font-extrabold"></div>
-    <div class="flex flex-col gap-3">
-      <button id="seeWordBtn" onclick="seeWord()" class="bg-green-600 px-6 py-4 rounded-lg font-bold w-full">Ver Palavra</button>
-      <button id="hideWordBtn" onclick="hideWord()" class="hidden bg-yellow-600 px-6 py-4 rounded-lg font-bold w-full">Ocultar</button>
-      <button id="nextBtn" onclick="nextPlayer()" class="bg-blue-600 px-6 py-4 rounded-lg font-bold w-full">Próximo Jogador</button>
-      <button id="startMatchBtn" onclick="startMatch()" class="hidden bg-purple-600 px-6 py-4 rounded-lg font-bold w-full">Iniciar Partida</button>
-    </div>
-  </div>
-
-  <!-- Match -->
-  <div id="matchScreen" class="fade">
-    <h2 class="mb-6 font-bold">Partida em andamento</h2>
-    <p id="turnInfo" class="mb-6"></p>
-    <div class="flex justify-center mb-6">
-      <svg width="clamp(160px,40vw,250px)" height="clamp(160px,40vw,250px)">
-        <circle cx="100" cy="100" r="90" class="timer-circle" stroke="#10b981" stroke-dasharray="565.48" stroke-dashoffset="565.48"></circle>
-        <text id="timerText" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#10b981" font-weight="bold">0:00</text>
-      </svg>
-    </div>
-    <button onclick="endMatch()" class="bg-red-600 px-6 py-4 rounded-lg font-bold w-full">Encerrar e Votar</button>
-  </div>
-
-  <!-- Voting -->
-  <div id="votingScreen" class="fade">
-    <h2 class="mb-6 font-bold">Quem é o impostor?</h2>
-    <div id="voteOptions" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
-  </div>
-
-  <!-- Result -->
-  <div id="resultScreen" class="fade">
-    <h2 id="resultTitle" class="mb-4 font-bold"></h2>
-    <p id="resultMessage" class="mb-4"></p>
-    <p>A palavra era:</p>
-    <div id="revealWord" class="p-6 bg-gray-800 rounded-lg mb-6 font-extrabold"></div>
-    <button onclick="resetGame()" class="bg-green-600 px-6 py-4 rounded-lg font-bold w-full">Novo Jogo</button>
-  </div>
-</div>
 
 <script>
-// ==== WORDLIST (300 palavras) ====
+// =============================
+// LISTA DE PALAVRAS (resumida)
+// =============================
 const wordList = [
-  // 50 Frutas
-  {word:"Manga",hint:"Fruta"},{word:"Banana",hint:"Fruta"},{word:"Morango",hint:"Fruta"},{word:"Abacaxi",hint:"Fruta"},{word:"Uva",hint:"Fruta"},{word:"Pera",hint:"Fruta"},{word:"Maçã",hint:"Fruta"},{word:"Melancia",hint:"Fruta"},{word:"Caju",hint:"Fruta"},{word:"Kiwi",hint:"Fruta"},
-  {word:"Jabuticaba",hint:"Fruta"},{word:"Acerola",hint:"Fruta"},{word:"Pitanga",hint:"Fruta"},{word:"Framboesa",hint:"Fruta"},{word:"Amora",hint:"Fruta"},{word:"Tangerina",hint:"Fruta"},{word:"Laranja",hint:"Fruta"},{word:"Limão",hint:"Fruta"},{word:"Carambola",hint:"Fruta"},{word:"Mamão",hint:"Fruta"},
-  {word:"Pêssego",hint:"Fruta"},{word:"Figo",hint:"Fruta"},{word:"Cereja",hint:"Fruta"},{word:"Graviola",hint:"Fruta"},{word:"Maracujá",hint:"Fruta"},{word:"Guaraná",hint:"Fruta"},{word:"Buriti",hint:"Fruta"},{word:"Sapoti",hint:"Fruta"},{word:"Tamarindo",hint:"Fruta"},{word:"Romã",hint:"Fruta"},
-  {word:"Melão",hint:"Fruta"},{word:"Seriguela",hint:"Fruta"},{word:"Cupuaçu",hint:"Fruta"},{word:"Jenipapo",hint:"Fruta"},{word:"Pitaya",hint:"Fruta"},{word:"Ameixa",hint:"Fruta"},{word:"Jaca",hint:"Fruta"},{word:"Cabeludinha",hint:"Fruta"},{word:"Araticum",hint:"Fruta"},{word:"Umbu",hint:"Fruta"},
-  {word:"Pinha",hint:"Fruta"},{word:"Murici",hint:"Fruta"},{word:"Pequi",hint:"Fruta"},{word:"Cambuci",hint:"Fruta"},{word:"Cacau",hint:"Fruta"},{word:"Guabiroba",hint:"Fruta"},{word:"Ingá",hint:"Fruta"},{word:"Cupu",hint:"Fruta"},{word:"Bacaba",hint:"Fruta"},{word:"Butiá",hint:"Fruta"},
-
-  // 50 Animais
-  {word:"Leão",hint:"Animal"},{word:"Elefante",hint:"Animal"},{word:"Cavalo",hint:"Animal"},{word:"Tigre",hint:"Animal"},{word:"Jacaré",hint:"Animal"},{word:"Girafa",hint:"Animal"},{word:"Baleia",hint:"Animal"},{word:"Golfinho",hint:"Animal"},{word:"Cachorro",hint:"Animal"},{word:"Gato",hint:"Animal"},
-  {word:"Papagaio",hint:"Animal"},{word:"Arara",hint:"Animal"},{word:"Macaco",hint:"Animal"},{word:"Urso",hint:"Animal"},{word:"Rinoceronte",hint:"Animal"},{word:"Hipopótamo",hint:"Animal"},{word:"Camelo",hint:"Animal"},{word:"Lobo",hint:"Animal"},{word:"Raposa",hint:"Animal"},{word:"Canguru",hint:"Animal"},
-  {word:"Panda",hint:"Animal"},{word:"Tartaruga",hint:"Animal"},{word:"Cobra",hint:"Animal"},{word:"Lagarto",hint:"Animal"},{word:"Pinguim",hint:"Animal"},{word:"Coruja",hint:"Animal"},{word:"Águia",hint:"Animal"},{word:"Tatu",hint:"Animal"},{word:"Tamanduá",hint:"Animal"},{word:"Bicho-preguiça",hint:"Animal"},
-  {word:"Jacutinga",hint:"Animal"},{word:"Anta",hint:"Animal"},{word:"Capivara",hint:"Animal"},{word:"Onça",hint:"Animal"},{word:"Gavião",hint:"Animal"},{word:"Pavão",hint:"Animal"},{word:"Flamingo",hint:"Animal"},{word:"Camaleão",hint:"Animal"},{word:"Coelho",hint:"Animal"},{word:"Esquilo",hint:"Animal"},
-  {word:"Rato",hint:"Animal"},{word:"Morcego",hint:"Animal"},{word:"Peixe",hint:"Animal"},{word:"Tubarao",hint:"Animal"},{word:"Polvo",hint:"Animal"},{word:"Caranguejo",hint:"Animal"},{word:"Lagosta",hint:"Animal"},{word:"Abelha",hint:"Animal"},{word:"Formiga",hint:"Animal"},{word:"Borboleta",hint:"Animal"},
-
-  // 100 Objetos
-  {word:"Computador",hint:"Objeto"},{word:"Cadeira",hint:"Objeto"},{word:"Celular",hint:"Objeto"},{word:"Livro",hint:"Objeto"},{word:"Mesa",hint:"Objeto"},{word:"Caneta",hint:"Objeto"},{word:"Lápis",hint:"Objeto"},{word:"Borracha",hint:"Objeto"},{word:"Tesoura",hint:"Objeto"},{word:"Prato",hint:"Objeto"},
-  {word:"Copo",hint:"Objeto"},{word:"Panela",hint:"Objeto"},{word:"Faca",hint:"Objeto"},{word:"Garfo",hint:"Objeto"},{word:"Colher",hint:"Objeto"},{word:"Chave",hint:"Objeto"},{word:"Porta",hint:"Objeto"},{word:"Janela",hint:"Objeto"},{word:"Sapato",hint:"Objeto"},{word:"Relógio",hint:"Objeto"},
-  {word:"Óculos",hint:"Objeto"},{word:"Boné",hint:"Objeto"},{word:"Chapéu",hint:"Objeto"},{word:"Camisa",hint:"Objeto"},{word:"Calça",hint:"Objeto"},{word:"Bola",hint:"Objeto"},{word:"Carrinho",hint:"Objeto"},{word:"Bicicleta",hint:"Objeto"},{word:"Moto",hint:"Objeto"},{word:"Carro",hint:"Objeto"},
-  {word:"Avião",hint:"Objeto"},{word:"Barco",hint:"Objeto"},{word:"Navio",hint:"Objeto"},{word:"Ônibus",hint:"Objeto"},{word:"Caminhão",hint:"Objeto"},{word:"Violão",hint:"Objeto"},{word:"Guitarra",hint:"Objeto"},{word:"Bateria",hint:"Objeto"},{word:"Microfone",hint:"Objeto"},{word:"Caixa",hint:"Objeto"},
-  {word:"Sofá",hint:"Objeto"},{word:"Cama",hint:"Objeto"},{word:"Travesseiro",hint:"Objeto"},{word:"Colchão",hint:"Objeto"},{word:"Cobertor",hint:"Objeto"},{word:"Quadro",hint:"Objeto"},{word:"Televisão",hint:"Objeto"},{word:"Controle",hint:"Objeto"},{word:"Lampada",hint:"Objeto"},{word:"Ventilador",hint:"Objeto"},
-  {word:"Ar-condicionado",hint:"Objeto"},{word:"Fogão",hint:"Objeto"},{word:"Geladeira",hint:"Objeto"},{word:"Microondas",hint:"Objeto"},{word:"Forno",hint:"Objeto"},{word:"Liquidificador",hint:"Objeto"},{word:"Mixer",hint:"Objeto"},{word:"Batedeira",hint:"Objeto"},{word:"Aspirador",hint:"Objeto"},{word:"Rádio",hint:"Objeto"},
-  {word:"Caixa de Som",hint:"Objeto"},{word:"Monitor",hint:"Objeto"},{word:"Mouse",hint:"Objeto"},{word:"Teclado",hint:"Objeto"},{word:"Impressora",hint:"Objeto"},{word:"Caneca",hint:"Objeto"},{word:"Espelho",hint:"Objeto"},{word:"Perfume",hint:"Objeto"},{word:"Escova",hint:"Objeto"},{word:"Pente",hint:"Objeto"},
-  {word:"Sabonete",hint:"Objeto"},{word:"Shampoo",hint:"Objeto"},{word:"Condicionador",hint:"Objeto"},{word:"Toalha",hint:"Objeto"},{word:"Balde",hint:"Objeto"},{word:"Vassoura",hint:"Objeto"},{word:"Pá",hint:"Objeto"},{word:"Rodo",hint:"Objeto"},{word:"Livro",hint:"Objeto"},{word:"Revista",hint:"Objeto"},
-  {word:"Agenda",hint:"Objeto"},{word:"Diário",hint:"Objeto"},{word:"Caderno",hint:"Objeto"},{word:"Mochila",hint:"Objeto"},{word:"Bolsa",hint:"Objeto"},{word:"Carteira",hint:"Objeto"},{word:"Caixa de Ferramenta",hint:"Objeto"},{word:"Martelo",hint:"Objeto"},{word:"Alicate",hint:"Objeto"},{word:"Serrote",hint:"Objeto"},
-  {word:"Parafuso",hint:"Objeto"},{word:"Prego",hint:"Objeto"},{word:"Trena",hint:"Objeto"},{word:"Lanterna",hint:"Objeto"},{word:"Bússola",hint:"Objeto"},{word:"Mapa",hint:"Objeto"},{word:"Globo",hint:"Objeto"},{word:"Bússola",hint:"Objeto"},{word:"Termômetro",hint:"Objeto"},{word:"Estetoscópio",hint:"Objeto"},
-
-  // 100 Extras (mistos)
-  {word:"Pizza",hint:"Comida"},{word:"Hamburguer",hint:"Comida"},{word:"Lasanha",hint:"Comida"},{word:"Pastel",hint:"Comida"},{word:"Churrasco",hint:"Comida"},{word:"Feijoada",hint:"Comida"},{word:"Arroz",hint:"Comida"},{word:"Feijão",hint:"Comida"},{word:"Batata",hint:"Comida"},{word:"Cenoura",hint:"Comida"},
-  {word:"Alface",hint:"Comida"},{word:"Tomate",hint:"Comida"},{word:"Pepino",hint:"Comida"},{word:"Abóbora",hint:"Comida"},{word:"Couve",hint:"Comida"},{word:"Espinafre",hint:"Comida"},{word:"Quiabo",hint:"Comida"},{word:"Chuchu",hint:"Comida"},{word:"Mandioquinha",hint:"Comida"},{word:"Mandioca",hint:"Comida"},
-  {word:"Macarrão",hint:"Comida"},{word:"Sopa",hint:"Comida"},{word:"Salada",hint:"Comida"},{word:"Biscoito",hint:"Comida"},{word:"Chocolate",hint:"Comida"},{word:"Sorvete",hint:"Comida"},{word:"Bolo",hint:"Comida"},{word:"Pão",hint:"Comida"},{word:"Torta",hint:"Comida"},{word:"Café",hint:"Comida"},
-  {word:"Chá",hint:"Comida"},{word:"Suco",hint:"Comida"},{word:"Refrigerante",hint:"Comida"},{word:"Vinho",hint:"Comida"},{word:"Cerveja",hint:"Comida"},{word:"Água",hint:"Comida"},{word:"Suéter",hint:"Roupa"},{word:"Jaqueta",hint:"Roupa"},{word:"Blusa",hint:"Roupa"},{word:"Vestido",hint:"Roupa"},
-  {word:"Saia",hint:"Roupa"},{word:"Meia",hint:"Roupa"},{word:"Tênis",hint:"Roupa"},{word:"Sandália",hint:"Roupa"},{word:"Bota",hint:"Roupa"},{word:"Cinto",hint:"Roupa"},{word:"Gravata",hint:"Roupa"},{word:"Fone",hint:"Objeto"},{word:"Tablet",hint:"Objeto"},{word:"Notebook",hint:"Objeto"},
-  {word:"Drone",hint:"Objeto"},{word:"Robô",hint:"Objeto"},{word:"Satélite",hint:"Objeto"},{word:"Foguete",hint:"Objeto"},{word:"Planeta",hint:"Espaço"},{word:"Estrela",hint:"Espaço"},{word:"Lua",hint:"Espaço"},{word:"Sol",hint:"Espaço"},{word:"Galáxia",hint:"Espaço"},{word:"Cometa",hint:"Espaço"},
-  {word:"Meteorito",hint:"Espaço"},{word:"Buraco negro",hint:"Espaço"},{word:"Universo",hint:"Espaço"},{word:"Espaçonave",hint:"Espaço"},{word:"Astronauta",hint:"Espaço"},{word:"Marte",hint:"Espaço"},{word:"Júpiter",hint:"Espaço"},{word:"Saturno",hint:"Espaço"},{word:"Vênus",hint:"Espaço"},{word:"Mercúrio",hint:"Espaço"},
-  {word:"Netuno",hint:"Espaço"},{word:"Urano",hint:"Espaço"},{word:"Plutão",hint:"Espaço"},{word:"Estádio",hint:"Lugar"},{word:"Praia",hint:"Lugar"},{word:"Montanha",hint:"Lugar"},{word:"Floresta",hint:"Lugar"},{word:"Rio",hint:"Lugar"},{word:"Lago",hint:"Lugar"},{word:"Cachoeira",hint:"Lugar"},
-  {word:"Deserto",hint:"Lugar"},{word:"Cidade",hint:"Lugar"},{word:"Vila",hint:"Lugar"},{word:"Castelo",hint:"Lugar"},{word:"Palácio",hint:"Lugar"},{word:"Igreja",hint:"Lugar"},{word:"Templo",hint:"Lugar"},{word:"Escola",hint:"Lugar"},{word:"Hospital",hint:"Lugar"},{word:"Mercado",hint:"Lugar"}
+  {word:"Manga", hint:"Amarela doce"},
+  {word:"Banana", hint:"Amarela curva"},
+  {word:"Morango", hint:"Vermelha pequena"},
+  {word:"Abacaxi", hint:"Tropical espinhoso"},
+  {word:"Uva", hint:"Cacho roxo"},
+  {word:"Pera", hint:"Verde suave"},
+  {word:"Maçã", hint:"Vermelha crocante"},
+  {word:"Melancia", hint:"Grande refrescante"},
+  {word:"Caju", hint:"Castanha fruta"},
+  {word:"Kiwi", hint:"Marrom ácido"},
+  {word:"Jabuticaba", hint:"Preta doce"},
+  {word:"Acerola", hint:"Vermelha azeda"},
+  {word:"Pitanga", hint:"Pequena ácida"},
+  {word:"Framboesa", hint:"Vermelha silvestre"},
+  {word:"Amora", hint:"Preta doce"},
+  {word:"Tangerina", hint:"Cítrica fácil"},
+  {word:"Laranja", hint:"Cítrica suco"},
+  {word:"Limão", hint:"Cítrico azedo"},
+  {word:"Carambola", hint:"Forma estrela"},
+  {word:"Mamão", hint:"Laranja sementes"},
+  {word:"Pêssego", hint:"Pele aveludada"},
+  {word:"Figo", hint:"Roxo doce"},
+  {word:"Cereja", hint:"Vermelha pequena"},
+  {word:"Graviola", hint:"Grande branca"},
+  {word:"Maracujá", hint:"Amarelo azedo"},
+  {word:"Guaraná", hint:"Semente energia"},
+  {word:"Buriti", hint:"Palmeira fruta"},
+  {word:"Sapoti", hint:"Doce marrom"},
+  {word:"Tamarindo", hint:"Doce ácido"},
+  {word:"Romã", hint:"Vermelha sementes"},
+  {word:"Melão", hint:"Amarelo fresco"},
+  {word:"Seriguela", hint:"Pequena nordeste"},
+  {word:"Cupuaçu", hint:"Doce amazônia"},
+  {word:"Jenipapo", hint:"Fruto nordeste"},
+  {word:"Pitaya", hint:"Dragão rosa"},
+  {word:"Ameixa", hint:"Roxa pequena"},
+  {word:"Jaca", hint:"Grande pegajosa"},
+  {word:"Cabeludinha", hint:"Fruta peluda"},
+  {word:"Araticum", hint:"Doce cerrado"},
+  {word:"Umbu", hint:"Nordeste verde"},
+  {word:"Pinha", hint:"Doce branca"},
+  {word:"Murici", hint:"Pequeno amarelo"},
+  {word:"Pequi", hint:"Arroz Goiás"},
+  {word:"Cambuci", hint:"Azeda paulista"},
+  {word:"Cacau", hint:"Chocolate fruta"},
+  {word:"Guabiroba", hint:"Doce cerrado"},
+  {word:"Ingá", hint:"Doce vagem"},
+  {word:"Cupu", hint:"Fruto norte"},
+  {word:"Bacaba", hint:"Amazônia vinho"},
+  {word:"Butiá", hint:"Pequeno gaúcho"},
+  {word:"Leão", hint:"Rei selva"},
+  {word:"Elefante", hint:"Grande tromba"},
+  {word:"Cavalo", hint:"Corre rápido"},
+  {word:"Tigre", hint:"Listras feroz"},
+  {word:"Jacaré", hint:"Água dentes"},
+  {word:"Girafa", hint:"Pescoço longo"},
+  {word:"Baleia", hint:"Gigante oceano"},
+  {word:"Golfinho", hint:"Inteligente mar"},
+  {word:"Cachorro", hint:"Melhor amigo"},
+  {word:"Gato", hint:"Fofinho doméstico"},
+  {word:"Papagaio", hint:"Fala cores"},
+  {word:"Arara", hint:"Tropical azul"},
+  {word:"Macaco", hint:"Ágil árvores"},
+  {word:"Urso", hint:"Grande peludo"},
+  {word:"Rinoceronte", hint:"Chifre pesado"},
+  {word:"Hipopótamo", hint:"Água pesado"},
+  {word:"Camelo", hint:"Deserto corcunda"},
+  {word:"Lobo", hint:"Morde uiva"},
+  {word:"Raposa", hint:"Vermelha astuta"},
+  {word:"Canguru", hint:"Salta Austrália"},
+  {word:"Panda", hint:"Preto branco"},
+  {word:"Tartaruga", hint:"Lenta casco"},
+  {word:"Cobra", hint:"Sem pernas"},
+  {word:"Lagarto", hint:"Rápido réptil"},
+  {word:"Pinguim", hint:"Frio ave"},
+  {word:"Coruja", hint:"Noite olhos"},
+  {word:"Águia", hint:"Voa alto"},
+  {word:"Tatu", hint:"Enterra terra"},
+  {word:"Tamanduá", hint:"Come formiga"},
+  {word:"Bicho-preguiça", hint:"Devagar árvore"},
+  {word:"Jacutinga", hint:"Ave rara"},
+  {word:"Anta", hint:"Grande forestal"},
+  {word:"Capivara", hint:"Rato gigante"},
+  {word:"Onça", hint:"Feroz selva"},
+  {word:"Gavião", hint:"Caça aves"},
+  {word:"Pavão", hint:"Colorido cauda"},
+  {word:"Flamingo", hint:"Rosa longo"},
+  {word:"Camaleão", hint:"Muda cores"},
+  {word:"Coelho", hint:"Salta fofo"},
+  {word:"Esquilo", hint:"Ágil árvores"},
+  {word:"Rato", hint:"Pequeno roedor"},
+  {word:"Morcego", hint:"Noite voa"},
+  {word:"Peixe", hint:"Nada água"},
+  {word:"Tubarao", hint:"Feroz mar"},
+  {word:"Polvo", hint:"Oito tentáculos"},
+  {word:"Caranguejo", hint:"Praia pinças"},
+  {word:"Lagosta", hint:"Mar crustáceo"},
+  {word:"Abelha", hint:"Mel voo"},
+  {word:"Formiga", hint:"Trabalhadora pequena"},
+  {word:"Borboleta", hint:"Colorida asas"},
+  
 ];
 
-// ==== VARIÁVEIS ====
-let players = [];
-let impostorIndex = 0;
-let currentPlayer = 0;
-let secretWord = "";
-let gameHint = "";
-let timerInterval;
+// =============================
+// ESTADO DO JOGO
+// =============================
+let gameState = {
+  players: [],
+  currentPlayerIndex: 0,
+  secretWord: "",
+  hint: "",
+  impostorIndex: null,
+  timer: null,
+  timeLeft: 60,
+  roundTime: 60
+};
 
-// ==== FUNÇÕES ====
-function showScreen(id) {
-  document.querySelectorAll(".fade").forEach(div => div.classList.remove("show"));
-  document.getElementById(id).classList.add("show");
+let wordRevealed = false;
+
+// =============================
+// FUNÇÕES DO JOGO
+// =============================
+function showScreen(screenId) {
+  document.querySelectorAll("#app > div").forEach(div => {
+    div.classList.add("hidden");
+    div.style.opacity = 0;
+  });
+  const el = document.getElementById(screenId);
+  el.classList.remove("hidden");
+  setTimeout(() => el.style.opacity = 1, 50);
 }
 
-function chooseRandomWord() {
-  const rnd = wordList[Math.floor(Math.random()*wordList.length)];
-  document.getElementById("secretWord").value = rnd.word;
-  document.getElementById("gameHint").value = rnd.hint;
+function addPlayer() {
+  const name = document.getElementById("playerName").value.trim();
+  if (!name) return;
+  gameState.players.push(name);
+  const li = document.createElement("li");
+  li.textContent = name;
+  document.getElementById("playersList").appendChild(li);
+  document.getElementById("playerName").value = "";
 }
 
 function startGame() {
-  const count = parseInt(document.getElementById("playerCount").value);
-  secretWord = document.getElementById("secretWord").value;
-  gameHint = document.getElementById("gameHint").value;
-
-  if(!secretWord) return alert("Defina a palavra secreta ou escolha aleatória!");
-
-  players = Array.from({length:count}, (_,i)=>`Jogador ${i+1}`);
-  impostorIndex = Math.floor(Math.random()*count);
-  currentPlayer = 0;
-
-  document.getElementById("roleTitle").innerText = players[currentPlayer];
-  showScreen("roleScreen");
-}
-
-function seeWord() {
-  if(currentPlayer === impostorIndex){
-    document.getElementById("wordBox").innerText = `Dica: ${gameHint}`;
-  } else {
-    document.getElementById("wordBox").innerText = `Palavra: ${secretWord}`;
+  if (gameState.players.length < 3) {
+    alert("Mínimo de 3 jogadores!");
+    return;
   }
-  document.getElementById("wordBox").classList.remove("hidden");
-  document.getElementById("seeWordBtn").classList.add("hidden");
-  document.getElementById("hideWordBtn").classList.remove("hidden");
+  const roundTimeInput = parseInt(document.getElementById("roundTime").value, 10);
+  gameState.roundTime = isNaN(roundTimeInput) ? 60 : roundTimeInput;
+  gameState.timeLeft = gameState.roundTime;
+
+  const choice = wordList[Math.floor(Math.random() * wordList.length)];
+  gameState.secretWord = choice.word;
+  gameState.hint = choice.hint;
+  gameState.impostorIndex = Math.floor(Math.random() * gameState.players.length);
+  gameState.currentPlayerIndex = 0;
+  showWord();
 }
 
-function hideWord() {
-  document.getElementById("wordBox").classList.add("hidden");
-  document.getElementById("seeWordBtn").classList.remove("hidden");
-  document.getElementById("hideWordBtn").classList.add("hidden");
+function showWord() {
+  wordRevealed = false;
+  showScreen("wordScreen");
+  const idx = gameState.currentPlayerIndex;
+  document.getElementById("currentPlayer").textContent = gameState.players[idx];
+  document.getElementById("hiddenWordSection").classList.remove("hidden");
+  document.getElementById("revealedWordSection").classList.add("hidden");
+  document.getElementById("toggleWordBtn").textContent = "Ver Palavra";
+  document.getElementById("nextPlayerBtn").classList.add("hidden");
+}
+
+function toggleWord() {
+  const idx = gameState.currentPlayerIndex;
+  wordRevealed = !wordRevealed;
+
+  const hiddenSection = document.getElementById("hiddenWordSection");
+  const revealedSection = document.getElementById("revealedWordSection");
+  const toggleBtn = document.getElementById("toggleWordBtn");
+  const nextBtn = document.getElementById("nextPlayerBtn");
+
+  if (wordRevealed) {
+    hiddenSection.classList.add("hidden");
+    revealedSection.classList.remove("hidden");
+    nextBtn.classList.remove("hidden");
+
+    if (idx === gameState.impostorIndex) {
+      document.getElementById("wordHint").textContent = "🚨 Você é o IMPOSTOR!";
+      document.getElementById("wordText").textContent = "Tente se misturar 👀";
+    } else {
+      document.getElementById("wordHint").textContent = "Dica: " + gameState.hint;
+      document.getElementById("wordText").textContent = "Palavra: " + gameState.secretWord;
+    }
+
+    toggleBtn.textContent = "Ocultar Palavra";
+  } else {
+    hiddenSection.classList.remove("hidden");
+    revealedSection.classList.add("hidden");
+    nextBtn.classList.add("hidden");
+    toggleBtn.textContent = "Ver Palavra";
+  }
 }
 
 function nextPlayer() {
-  currentPlayer++;
-  if(currentPlayer < players.length){
-    document.getElementById("roleTitle").innerText = players[currentPlayer];
+  gameState.currentPlayerIndex++;
+  if (gameState.currentPlayerIndex < gameState.players.length) {
+    showWord();
   } else {
-    document.getElementById("nextBtn").classList.add("hidden");
-    document.getElementById("startMatchBtn").classList.remove("hidden");
-    document.getElementById("roleTitle").innerText = "Todos viram sua palavra";
+    startRound();
   }
-  hideWord();
 }
 
-function startMatch() {
-  showScreen("matchScreen");
-  const rndStart = Math.floor(Math.random()*players.length);
-  document.getElementById("turnInfo").innerText = `${players[rndStart]} começa!`;
-  startTimer();
+function startRound() {
+  showScreen("gameScreen");
+  gameState.timeLeft = gameState.roundTime;
+  const circle = document.getElementById("circle");
+  const circumference = 440;
+  clearInterval(gameState.timer);
+  gameState.timer = setInterval(() => {
+    gameState.timeLeft--;
+    document.getElementById("timerText").textContent = gameState.timeLeft + "s";
+    const progress = (gameState.timeLeft / gameState.roundTime) * circumference;
+    circle.setAttribute("stroke-dashoffset", circumference - progress);
+    if (gameState.timeLeft <= 0) {
+      clearInterval(gameState.timer);
+      showVotingScreen();
+    }
+  }, 1000);
 }
 
-function startTimer() {
-  const minutes = parseInt(document.getElementById("gameTime").value);
-  let total = minutes*60;
-  const circle = document.querySelector(".timer-circle");
-  const dash = 565.48;
-
-  clearInterval(timerInterval);
-  timerInterval = setInterval(()=>{
-    const min = Math.floor(total/60);
-    const sec = total%60;
-    document.getElementById("timerText").textContent = `${min}:${sec.toString().padStart(2,"0")}`;
-    const offset = dash - (dash*(total/(minutes*60)));
-    circle.style.strokeDashoffset = offset;
-    circle.setAttribute("stroke", total<30 ? "#ef4444":"#10b981");
-
-    if(total<=0){ clearInterval(timerInterval); endMatch(); }
-    total--;
-  },1000);
-}
-
-function endMatch() {
-  clearInterval(timerInterval);
+function showVotingScreen() {
   showScreen("votingScreen");
-  const voteDiv = document.getElementById("voteOptions");
-  voteDiv.innerHTML="";
-  players.forEach((p,i)=>{
-    const btn=document.createElement("button");
-    btn.textContent=p;
-    btn.className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold";
-    btn.onclick=()=>showResult(i);
-    voteDiv.appendChild(btn);
+  const voteOptions = document.getElementById("voteOptions");
+  voteOptions.innerHTML = '';
+  gameState.players.forEach((p, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "bg-red-600 hover:bg-red-700 px-8 py-4 rounded-lg font-bold";
+    btn.textContent = `Votar em ${p}`;
+    btn.onclick = () => vote(idx);
+    voteOptions.appendChild(btn);
   });
 }
 
-function showResult(votedIndex) {
-  showScreen("resultScreen");
-  document.getElementById("revealWord").innerText=secretWord;
-  if(votedIndex===impostorIndex){
-    document.getElementById("resultTitle").innerText="Acertaram!";
-    document.getElementById("resultMessage").innerText=`O impostor era ${players[impostorIndex]}!`;
+function vote(votedIndex) {
+  showScreen('resultScreen');
+  document.getElementById("revealWord").textContent = gameState.secretWord;
+  if (votedIndex === gameState.impostorIndex) {
+    document.getElementById("resultTitle").textContent = "🎉 Vitória dos Jogadores!";
+    document.getElementById("resultMessage").textContent = `${gameState.players[votedIndex]} era o impostor!`;
   } else {
-    document.getElementById("resultTitle").innerText="Erraram!";
-    document.getElementById("resultMessage").innerText=`O impostor era ${players[impostorIndex]}, mas vocês votaram em ${players[votedIndex]}.`;
+    document.getElementById("resultTitle").textContent = "😈 Vitória do Impostor!";
+    document.getElementById("resultMessage").textContent = `Vocês votaram em ${gameState.players[votedIndex]}, mas o impostor era ${gameState.players[gameState.impostorIndex]}!`;
   }
 }
 
-function resetGame(){
+function resetGame() {
+  gameState.players = [];
+  document.getElementById("playersList").innerHTML = '';
   showScreen("setupScreen");
-  document.getElementById("nextBtn").classList.remove("hidden");
-  document.getElementById("startMatchBtn").classList.add("hidden");
-  document.getElementById("wordBox").classList.add("hidden");
 }
 </script>
 </body>
