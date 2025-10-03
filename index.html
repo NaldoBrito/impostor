@@ -6,564 +6,250 @@
 <title>Palavra do Impostor</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  /* Fade-in/fade-out com slide */
-  .fade {
-    opacity: 0;
-    transform: translateY(20px);
-    pointer-events: none;
-    transition: opacity 0.5s ease, transform 0.5s ease;
-  }
-  .fade.show {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
-
-  /* Timer circular */
-  .timer-circle {
-    transform-origin: 50% 50%;
-    stroke-linecap: round;
-    stroke-width: 16;
-    fill: none;
-    transition: stroke-dashoffset 0.2s linear, stroke 0.5s linear;
-  }
-
-  /* Responsividade de textos */
+  .fade { opacity: 0; transform: translateY(20px); pointer-events: none; transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .timer-circle { transform-origin: 50% 50%; stroke-linecap: round; stroke-width: 16; fill: none; transition: stroke-dashoffset 0.2s linear, stroke 0.5s linear; }
   h1 { font-size: clamp(2rem, 5vw, 4rem); }
   h2 { font-size: clamp(1.5rem, 4vw, 3rem); }
-  p, button, input { font-size: clamp(1rem, 2.5vw, 1.5rem); }
+  p, button, input { font-size: clamp(1rem, 2.5vw, 1.3rem); }
 </style>
 </head>
 <body class="bg-[#1a1a2e] text-white font-sans">
 
-<div class="container mx-auto p-6 text-center max-w-2xl">
+<div class="container mx-auto p-4 sm:p-6 text-center max-w-2xl">
 
   <!-- Setup Screen -->
   <div id="setupScreen" class="fade show">
-    <h1 class="mb-8 font-bold">Configurar Jogo</h1>
-    
-    <label class="block mb-2">Número de jogadores</label>
-    <input id="playerCount" type="number" value="5" min="3" max="10" class="text-black p-3 rounded mb-6 w-40">
-
-    <label class="block mb-2">Tempo da Partida (minutos)</label>
-    <input id="gameTime" type="number" value="5" min="1" max="30" class="text-black p-3 rounded mb-6 w-40">
-
-    <label class="block mb-2">Palavra Secreta</label>
-    <input id="secretWord" type="text" class="text-black p-3 rounded mb-6 w-full">
-
-    <label class="block mb-2">Dica para o impostor</label>
-    <input id="gameHint" type="text" class="text-black p-3 rounded mb-6 w-full">
-
-    <button onclick="chooseRandomWord()" class="bg-orange-500 hover:bg-orange-600 px-8 py-4 rounded-lg font-bold mb-6">Escolher Palavra Aleatória</button>
-    <button onclick="startGame()" class="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg font-bold">Iniciar</button>
+    <h1 class="mb-6 font-bold">Configurar Jogo</h1>
+    <div class="flex flex-col gap-4">
+      <div>
+        <label class="block mb-1">Número de jogadores</label>
+        <input id="playerCount" type="number" value="5" min="3" max="10" class="text-black p-3 rounded w-full sm:w-40">
+      </div>
+      <div>
+        <label class="block mb-1">Tempo da Partida (minutos)</label>
+        <input id="gameTime" type="number" value="5" min="1" max="30" class="text-black p-3 rounded w-full sm:w-40">
+      </div>
+      <div>
+        <label class="block mb-1">Palavra Secreta</label>
+        <input id="secretWord" type="text" class="text-black p-3 rounded w-full">
+      </div>
+      <div>
+        <label class="block mb-1">Dica para o impostor</label>
+        <input id="gameHint" type="text" class="text-black p-3 rounded w-full">
+      </div>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-4 mt-6">
+      <button onclick="chooseRandomWord()" class="bg-orange-500 hover:bg-orange-600 px-6 py-4 rounded-lg font-bold w-full sm:w-auto">Palavra Aleatória</button>
+      <button onclick="startGame()" class="bg-blue-600 hover:bg-blue-700 px-6 py-4 rounded-lg font-bold w-full sm:w-auto">Iniciar</button>
+    </div>
   </div>
 
-  <!-- Role Reveal Screen -->
+  <!-- Role Reveal -->
   <div id="roleScreen" class="fade">
     <h2 id="roleTitle" class="mb-6 font-bold"></h2>
-    <div id="wordBox" class="hidden p-8 bg-gray-800 rounded-lg mb-6 font-extrabold"></div>
-    <button id="seeWordBtn" onclick="seeWord()" class="bg-green-600 px-8 py-4 rounded-lg font-bold mb-4">Ver Palavra</button>
-    <button id="hideWordBtn" onclick="hideWord()" class="hidden bg-yellow-600 px-8 py-4 rounded-lg font-bold mb-4">Ocultar</button>
-    <button id="nextBtn" onclick="nextPlayer()" class="bg-blue-600 px-8 py-4 rounded-lg font-bold mb-4">Próximo Jogador</button>
-    <button id="startMatchBtn" onclick="startMatch()" class="hidden bg-purple-600 px-8 py-4 rounded-lg font-bold">Iniciar Partida</button>
+    <div id="wordBox" class="hidden p-6 bg-gray-800 rounded-lg mb-6 font-extrabold"></div>
+    <div class="flex flex-col gap-3">
+      <button id="seeWordBtn" onclick="seeWord()" class="bg-green-600 px-6 py-4 rounded-lg font-bold w-full">Ver Palavra</button>
+      <button id="hideWordBtn" onclick="hideWord()" class="hidden bg-yellow-600 px-6 py-4 rounded-lg font-bold w-full">Ocultar</button>
+      <button id="nextBtn" onclick="nextPlayer()" class="bg-blue-600 px-6 py-4 rounded-lg font-bold w-full">Próximo Jogador</button>
+      <button id="startMatchBtn" onclick="startMatch()" class="hidden bg-purple-600 px-6 py-4 rounded-lg font-bold w-full">Iniciar Partida</button>
+    </div>
   </div>
 
-  <!-- Match Screen -->
+  <!-- Match -->
   <div id="matchScreen" class="fade">
     <h2 class="mb-6 font-bold">Partida em andamento</h2>
     <p id="turnInfo" class="mb-6"></p>
-    <div class="flex justify-center mb-8 relative">
-      <svg width="clamp(150px,30vw,250px)" height="clamp(150px,30vw,250px)">
+    <div class="flex justify-center mb-6">
+      <svg width="clamp(160px,40vw,250px)" height="clamp(160px,40vw,250px)">
         <circle cx="100" cy="100" r="90" class="timer-circle" stroke="#10b981" stroke-dasharray="565.48" stroke-dashoffset="565.48"></circle>
         <text id="timerText" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#10b981" font-weight="bold">0:00</text>
       </svg>
     </div>
-    <button onclick="endMatch()" class="bg-red-600 px-8 py-4 rounded-lg font-bold">Encerrar e Votar</button>
+    <button onclick="endMatch()" class="bg-red-600 px-6 py-4 rounded-lg font-bold w-full">Encerrar e Votar</button>
   </div>
 
-  <!-- Voting Screen -->
+  <!-- Voting -->
   <div id="votingScreen" class="fade">
-    <h2 class="mb-8 font-bold">Quem é o impostor?</h2>
-    <div id="voteOptions" class="grid gap-4"></div>
+    <h2 class="mb-6 font-bold">Quem é o impostor?</h2>
+    <div id="voteOptions" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
   </div>
 
-  <!-- Result Screen -->
+  <!-- Result -->
   <div id="resultScreen" class="fade">
-    <h2 id="resultTitle" class="mb-6 font-bold"></h2>
-    <p id="resultMessage" class="mb-6"></p>
+    <h2 id="resultTitle" class="mb-4 font-bold"></h2>
+    <p id="resultMessage" class="mb-4"></p>
     <p>A palavra era:</p>
-    <div id="revealWord" class="p-6 bg-gray-800 rounded-lg mb-8 font-extrabold"></div>
-    <button onclick="resetGame()" class="bg-green-600 px-8 py-4 rounded-lg font-bold">Novo Jogo</button>
+    <div id="revealWord" class="p-6 bg-gray-800 rounded-lg mb-6 font-extrabold"></div>
+    <button onclick="resetGame()" class="bg-green-600 px-6 py-4 rounded-lg font-bold w-full">Novo Jogo</button>
   </div>
-
 </div>
 
 <script>
+// ==== WORDLIST (300 palavras) ====
 const wordList = [
   // 50 Frutas
-  { word: "Manga", hint: "Fruta" },
-  { word: "Banana", hint: "Fruta" },
-  { word: "Morango", hint: "Fruta" },
-  { word: "Abacaxi", hint: "Fruta" },
-  { word: "Laranja", hint: "Fruta" },
-  { word: "Maçã", hint: "Fruta" },
-  { word: "Uva", hint: "Fruta" },
-  { word: "Pera", hint: "Fruta" },
-  { word: "Kiwi", hint: "Fruta" },
-  { word: "Ameixa", hint: "Fruta" },
-  { word: "Goiaba", hint: "Fruta" },
-  { word: "Melancia", hint: "Fruta" },
-  { word: "Melão", hint: "Fruta" },
-  { word: "Limão", hint: "Fruta" },
-  { word: "Pêssego", hint: "Fruta" },
-  { word: "Cereja", hint: "Fruta" },
-  { word: "Framboesa", hint: "Fruta" },
-  { word: "Amora", hint: "Fruta" },
-  { word: "Jabuticaba", hint: "Fruta" },
-  { word: "Acerola", hint: "Fruta" },
-  { word: "Pitanga", hint: "Fruta" },
-  { word: "Caju", hint: "Fruta" },
-  { word: "Carambola", hint: "Fruta" },
-  { word: "Caqui", hint: "Fruta" },
-  { word: "Damasco", hint: "Fruta" },
-  { word: "Figo", hint: "Fruta" },
-  { word: "Groselha", hint: "Fruta" },
-  { word: "Mangostão", hint: "Fruta" },
-  { word: "Maracujá", hint: "Fruta" },
-  { word: "Romã", hint: "Fruta" },
-  { word: "Tangerina", hint: "Fruta" },
-  { word: "Bergamota", hint: "Fruta" },
-  { word: "Cupuaçu", hint: "Fruta" },
-  { word: "Graviola", hint: "Fruta" },
-  { word: "Physalis", hint: "Fruta" },
-  { word: "Nêspera", hint: "Fruta" },
-  { word: "Ciriguela", hint: "Fruta" },
-  { word: "Marmelo", hint: "Fruta" },
-  { word: "Lichia", hint: "Fruta" },
-  { word: "Kumquat", hint: "Fruta" },
-  { word: "Jaca", hint: "Fruta" },
-  { word: "Atemóia", hint: "Fruta" },
-  { word: "Pitaya", hint: "Fruta" },
-  { word: "Sapoti", hint: "Fruta" },
-  { word: "Uxi", hint: "Fruta" },
-  { word: "Murici", hint: "Fruta" },
-  { word: "Biribá", hint: "Fruta" },
-  { word: "Tamarindo", hint: "Fruta" },
+  {word:"Manga",hint:"Fruta"},{word:"Banana",hint:"Fruta"},{word:"Morango",hint:"Fruta"},{word:"Abacaxi",hint:"Fruta"},{word:"Uva",hint:"Fruta"},{word:"Pera",hint:"Fruta"},{word:"Maçã",hint:"Fruta"},{word:"Melancia",hint:"Fruta"},{word:"Caju",hint:"Fruta"},{word:"Kiwi",hint:"Fruta"},
+  {word:"Jabuticaba",hint:"Fruta"},{word:"Acerola",hint:"Fruta"},{word:"Pitanga",hint:"Fruta"},{word:"Framboesa",hint:"Fruta"},{word:"Amora",hint:"Fruta"},{word:"Tangerina",hint:"Fruta"},{word:"Laranja",hint:"Fruta"},{word:"Limão",hint:"Fruta"},{word:"Carambola",hint:"Fruta"},{word:"Mamão",hint:"Fruta"},
+  {word:"Pêssego",hint:"Fruta"},{word:"Figo",hint:"Fruta"},{word:"Cereja",hint:"Fruta"},{word:"Graviola",hint:"Fruta"},{word:"Maracujá",hint:"Fruta"},{word:"Guaraná",hint:"Fruta"},{word:"Buriti",hint:"Fruta"},{word:"Sapoti",hint:"Fruta"},{word:"Tamarindo",hint:"Fruta"},{word:"Romã",hint:"Fruta"},
+  {word:"Melão",hint:"Fruta"},{word:"Seriguela",hint:"Fruta"},{word:"Cupuaçu",hint:"Fruta"},{word:"Jenipapo",hint:"Fruta"},{word:"Pitaya",hint:"Fruta"},{word:"Ameixa",hint:"Fruta"},{word:"Jaca",hint:"Fruta"},{word:"Cabeludinha",hint:"Fruta"},{word:"Araticum",hint:"Fruta"},{word:"Umbu",hint:"Fruta"},
+  {word:"Pinha",hint:"Fruta"},{word:"Murici",hint:"Fruta"},{word:"Pequi",hint:"Fruta"},{word:"Cambuci",hint:"Fruta"},{word:"Cacau",hint:"Fruta"},{word:"Guabiroba",hint:"Fruta"},{word:"Ingá",hint:"Fruta"},{word:"Cupu",hint:"Fruta"},{word:"Bacaba",hint:"Fruta"},{word:"Butiá",hint:"Fruta"},
 
   // 50 Animais
-  { word: "Leão", hint: "Animal" },
-  { word: "Elefante", hint: "Animal" },
-  { word: "Cavalo", hint: "Animal" },
-  { word: "Tigre", hint: "Animal" },
-  { word: "Cachorro", hint: "Animal" },
-  { word: "Gato", hint: "Animal" },
-  { word: "Coelho", hint: "Animal" },
-  { word: "Porco", hint: "Animal" },
-  { word: "Vaca", hint: "Animal" },
-  { word: "Ovelha", hint: "Animal" },
-  { word: "Cabra", hint: "Animal" },
-  { word: "Macaco", hint: "Animal" },
-  { word: "Gorila", hint: "Animal" },
-  { word: "Zebra", hint: "Animal" },
-  { word: "Girafa", hint: "Animal" },
-  { word: "Hipopótamo", hint: "Animal" },
-  { word: "Rinoceronte", hint: "Animal" },
-  { word: "Crocodilo", hint: "Animal" },
-  { word: "Jacaré", hint: "Animal" },
-  { word: "Leão-marinho", hint: "Animal" },
-  { word: "Golfinho", hint: "Animal" },
-  { word: "Baleia", hint: "Animal" },
-  { word: "Tubarão", hint: "Animal" },
-  { word: "Peixe", hint: "Animal" },
-  { word: "Pinguim", hint: "Animal" },
-  { word: "Urso", hint: "Animal" },
-  { word: "Raposa", hint: "Animal" },
-  { word: "Lobo", hint: "Animal" },
-  { word: "Rato", hint: "Animal" },
-  { word: "Camundongo", hint: "Animal" },
-  { word: "Esquilo", hint: "Animal" },
-  { word: "Coruja", hint: "Animal" },
-  { word: "Águia", hint: "Animal" },
-  { word: "Falcão", hint: "Animal" },
-  { word: "Pombo", hint: "Animal" },
-  { word: "Galinha", hint: "Animal" },
-  { word: "Peru", hint: "Animal" },
-  { word: "Pato", hint: "Animal" },
-  { word: "Ganso", hint: "Animal" },
-  { word: "Pavão", hint: "Animal" },
-  { word: "Camelo", hint: "Animal" },
-  { word: "Búfalo", hint: "Animal" },
-  { word: "Hiena", hint: "Animal" },
-  { word: "Anta", hint: "Animal" },
-  { word: "Tatu", hint: "Animal" },
-  { word: "Tamanduá", hint: "Animal" },
-  { word: "Mico", hint: "Animal" },
+  {word:"Leão",hint:"Animal"},{word:"Elefante",hint:"Animal"},{word:"Cavalo",hint:"Animal"},{word:"Tigre",hint:"Animal"},{word:"Jacaré",hint:"Animal"},{word:"Girafa",hint:"Animal"},{word:"Baleia",hint:"Animal"},{word:"Golfinho",hint:"Animal"},{word:"Cachorro",hint:"Animal"},{word:"Gato",hint:"Animal"},
+  {word:"Papagaio",hint:"Animal"},{word:"Arara",hint:"Animal"},{word:"Macaco",hint:"Animal"},{word:"Urso",hint:"Animal"},{word:"Rinoceronte",hint:"Animal"},{word:"Hipopótamo",hint:"Animal"},{word:"Camelo",hint:"Animal"},{word:"Lobo",hint:"Animal"},{word:"Raposa",hint:"Animal"},{word:"Canguru",hint:"Animal"},
+  {word:"Panda",hint:"Animal"},{word:"Tartaruga",hint:"Animal"},{word:"Cobra",hint:"Animal"},{word:"Lagarto",hint:"Animal"},{word:"Pinguim",hint:"Animal"},{word:"Coruja",hint:"Animal"},{word:"Águia",hint:"Animal"},{word:"Tatu",hint:"Animal"},{word:"Tamanduá",hint:"Animal"},{word:"Bicho-preguiça",hint:"Animal"},
+  {word:"Jacutinga",hint:"Animal"},{word:"Anta",hint:"Animal"},{word:"Capivara",hint:"Animal"},{word:"Onça",hint:"Animal"},{word:"Gavião",hint:"Animal"},{word:"Pavão",hint:"Animal"},{word:"Flamingo",hint:"Animal"},{word:"Camaleão",hint:"Animal"},{word:"Coelho",hint:"Animal"},{word:"Esquilo",hint:"Animal"},
+  {word:"Rato",hint:"Animal"},{word:"Morcego",hint:"Animal"},{word:"Peixe",hint:"Animal"},{word:"Tubarao",hint:"Animal"},{word:"Polvo",hint:"Animal"},{word:"Caranguejo",hint:"Animal"},{word:"Lagosta",hint:"Animal"},{word:"Abelha",hint:"Animal"},{word:"Formiga",hint:"Animal"},{word:"Borboleta",hint:"Animal"},
 
   // 100 Objetos
-  { word: "Computador", hint: "Objeto" },
-  { word: "Cadeira", hint: "Objeto" },
-  { word: "Celular", hint: "Objeto" },
-  { word: "Livro", hint: "Objeto" },
-  { word: "Mesa", hint: "Objeto" },
-  { word: "Caneta", hint: "Objeto" },
-  { word: "Lâmpada", hint: "Objeto" },
-  { word: "Televisão", hint: "Objeto" },
-  { word: "Relógio", hint: "Objeto" },
-  { word: "Óculos", hint: "Objeto" },
-  { word: "Chave", hint: "Objeto" },
-  { word: "Porta", hint: "Objeto" },
-  { word: "Janela", hint: "Objeto" },
-  { word: "Sapato", hint: "Objeto" },
-  { word: "Meia", hint: "Objeto" },
-  { word: "Camisa", hint: "Objeto" },
-  { word: "Calça", hint: "Objeto" },
-  { word: "Boné", hint: "Objeto" },
-  { word: "Guarda-chuva", hint: "Objeto" },
-  { word: "Mochila", hint: "Objeto" },
-  { word: "Mala", hint: "Objeto" },
-  { word: "Rádio", hint: "Objeto" },
-  { word: "Impressora", hint: "Objeto" },
-  { word: "Teclado", hint: "Objeto" },
-  { word: "Mouse", hint: "Objeto" },
-  { word: "Monitor", hint: "Objeto" },
-  { word: "Fone", hint: "Objeto" },
-  { word: "Garrafa", hint: "Objeto" },
-  { word: "Copo", hint: "Objeto" },
-  { word: "Prato", hint: "Objeto" },
-  { word: "Garfo", hint: "Objeto" },
-  { word: "Faca", hint: "Objeto" },
-  { word: "Colher", hint: "Objeto" },
-  { word: "Panela", hint: "Objeto" },
-  { word: "Fogão", hint: "Objeto" },
-  { word: "Geladeira", hint: "Objeto" },
-  { word: "Microondas", hint: "Objeto" },
-  { word: "Toalha", hint: "Objeto" },
-  { word: "Sabonete", hint: "Objeto" },
-  { word: "Escova", hint: "Objeto" },
-  { word: "Pasta de dente", hint: "Objeto" },
-  { word: "Cinto", hint: "Objeto" },
-  { word: "Espelho", hint: "Objeto" },
-  { word: "Tapete", hint: "Objeto" },
-  { word: "Sofá", hint: "Objeto" },
-  { word: "Poltrona", hint: "Objeto" },
-  { word: "Estante", hint: "Objeto" },
-  { word: "Armário", hint: "Objeto" },
-  { word: "Gaveta", hint: "Objeto" },
-  { word: "Lixeira", hint: "Objeto" },
-  { word: "Vaso", hint: "Objeto" },
-  { word: "Planta", hint: "Objeto" },
-  { word: "Quadro", hint: "Objeto" },
-  { word: "Telefone", hint: "Objeto" },
-  { word: "Cabide", hint: "Objeto" },
-  { word: "Ventilador", hint: "Objeto" },
-  { word: "Ar-condicionado", hint: "Objeto" },
-  { word: "Aquecedor", hint: "Objeto" },
-  { word: "Balde", hint: "Objeto" },
-  { word: "Vassoura", hint: "Objeto" },
-  { word: "Pá", hint: "Objeto" },
-  { word: "Martelo", hint: "Objeto" },
-  { word: "Chave inglesa", hint: "Objeto" },
-  { word: "Furadeira", hint: "Objeto" },
-  { word: "Serra", hint: "Objeto" },
-  { word: "Pregos", hint: "Objeto" },
-  { word: "Parafuso", hint: "Objeto" },
-  { word: "Carregador", hint: "Objeto" },
-  { word: "Bateria", hint: "Objeto" },
-  { word: "Lâmina", hint: "Objeto" },
-  { word: "Tesoura", hint: "Objeto" },
-  { word: "Cola", hint: "Objeto" },
-  { word: "Fita adesiva", hint: "Objeto" },
-  { word: "Calculadora", hint: "Objeto" },
-  { word: "Agenda", hint: "Objeto" },
-  { word: "Caderno", hint: "Objeto" },
-  { word: "Lápis", hint: "Objeto" },
-  { word: "Borracha", hint: "Objeto" },
-  { word: "Régua", hint: "Objeto" },
-  { word: "Estojo", hint: "Objeto" },
-  { word: "Lanterna", hint: "Objeto" },
-  { word: "Pilha", hint: "Objeto" },
-  { word: "Relógio de parede", hint: "Objeto" },
-  { word: "Abajur", hint: "Objeto" },
-  { word: "Cortina", hint: "Objeto" },
-  { word: "Rede", hint: "Objeto" },
-  { word: "Brinquedo", hint: "Objeto" },
+  {word:"Computador",hint:"Objeto"},{word:"Cadeira",hint:"Objeto"},{word:"Celular",hint:"Objeto"},{word:"Livro",hint:"Objeto"},{word:"Mesa",hint:"Objeto"},{word:"Caneta",hint:"Objeto"},{word:"Lápis",hint:"Objeto"},{word:"Borracha",hint:"Objeto"},{word:"Tesoura",hint:"Objeto"},{word:"Prato",hint:"Objeto"},
+  {word:"Copo",hint:"Objeto"},{word:"Panela",hint:"Objeto"},{word:"Faca",hint:"Objeto"},{word:"Garfo",hint:"Objeto"},{word:"Colher",hint:"Objeto"},{word:"Chave",hint:"Objeto"},{word:"Porta",hint:"Objeto"},{word:"Janela",hint:"Objeto"},{word:"Sapato",hint:"Objeto"},{word:"Relógio",hint:"Objeto"},
+  {word:"Óculos",hint:"Objeto"},{word:"Boné",hint:"Objeto"},{word:"Chapéu",hint:"Objeto"},{word:"Camisa",hint:"Objeto"},{word:"Calça",hint:"Objeto"},{word:"Bola",hint:"Objeto"},{word:"Carrinho",hint:"Objeto"},{word:"Bicicleta",hint:"Objeto"},{word:"Moto",hint:"Objeto"},{word:"Carro",hint:"Objeto"},
+  {word:"Avião",hint:"Objeto"},{word:"Barco",hint:"Objeto"},{word:"Navio",hint:"Objeto"},{word:"Ônibus",hint:"Objeto"},{word:"Caminhão",hint:"Objeto"},{word:"Violão",hint:"Objeto"},{word:"Guitarra",hint:"Objeto"},{word:"Bateria",hint:"Objeto"},{word:"Microfone",hint:"Objeto"},{word:"Caixa",hint:"Objeto"},
+  {word:"Sofá",hint:"Objeto"},{word:"Cama",hint:"Objeto"},{word:"Travesseiro",hint:"Objeto"},{word:"Colchão",hint:"Objeto"},{word:"Cobertor",hint:"Objeto"},{word:"Quadro",hint:"Objeto"},{word:"Televisão",hint:"Objeto"},{word:"Controle",hint:"Objeto"},{word:"Lampada",hint:"Objeto"},{word:"Ventilador",hint:"Objeto"},
+  {word:"Ar-condicionado",hint:"Objeto"},{word:"Fogão",hint:"Objeto"},{word:"Geladeira",hint:"Objeto"},{word:"Microondas",hint:"Objeto"},{word:"Forno",hint:"Objeto"},{word:"Liquidificador",hint:"Objeto"},{word:"Mixer",hint:"Objeto"},{word:"Batedeira",hint:"Objeto"},{word:"Aspirador",hint:"Objeto"},{word:"Rádio",hint:"Objeto"},
+  {word:"Caixa de Som",hint:"Objeto"},{word:"Monitor",hint:"Objeto"},{word:"Mouse",hint:"Objeto"},{word:"Teclado",hint:"Objeto"},{word:"Impressora",hint:"Objeto"},{word:"Caneca",hint:"Objeto"},{word:"Espelho",hint:"Objeto"},{word:"Perfume",hint:"Objeto"},{word:"Escova",hint:"Objeto"},{word:"Pente",hint:"Objeto"},
+  {word:"Sabonete",hint:"Objeto"},{word:"Shampoo",hint:"Objeto"},{word:"Condicionador",hint:"Objeto"},{word:"Toalha",hint:"Objeto"},{word:"Balde",hint:"Objeto"},{word:"Vassoura",hint:"Objeto"},{word:"Pá",hint:"Objeto"},{word:"Rodo",hint:"Objeto"},{word:"Livro",hint:"Objeto"},{word:"Revista",hint:"Objeto"},
+  {word:"Agenda",hint:"Objeto"},{word:"Diário",hint:"Objeto"},{word:"Caderno",hint:"Objeto"},{word:"Mochila",hint:"Objeto"},{word:"Bolsa",hint:"Objeto"},{word:"Carteira",hint:"Objeto"},{word:"Caixa de Ferramenta",hint:"Objeto"},{word:"Martelo",hint:"Objeto"},{word:"Alicate",hint:"Objeto"},{word:"Serrote",hint:"Objeto"},
+  {word:"Parafuso",hint:"Objeto"},{word:"Prego",hint:"Objeto"},{word:"Trena",hint:"Objeto"},{word:"Lanterna",hint:"Objeto"},{word:"Bússola",hint:"Objeto"},{word:"Mapa",hint:"Objeto"},{word:"Globo",hint:"Objeto"},{word:"Bússola",hint:"Objeto"},{word:"Termômetro",hint:"Objeto"},{word:"Estetoscópio",hint:"Objeto"},
 
-  // (continuação objetos para completar 100)
-  { word: "Boneca", hint: "Objeto" },
-  { word: "Carrinho", hint: "Objeto" },
-  { word: "Tabuleiro", hint: "Objeto" },
-  { word: "Baralho", hint: "Objeto" },
-  { word: "Tábua", hint: "Objeto" },
-  { word: "Liquidificador", hint: "Objeto" },
-  { word: "Batedeira", hint: "Objeto" },
-  { word: "Cafeteira", hint: "Objeto" },
-  { word: "Torradeira", hint: "Objeto" },
-  { word: "Frigideira", hint: "Objeto" },
-  { word: "Rolo de massa", hint: "Objeto" },
-  { word: "Chaleira", hint: "Objeto" },
-  { word: "Tupperware", hint: "Objeto" },
-  { word: "Guarda-roupa", hint: "Objeto" },
-  { word: "Colchão", hint: "Objeto" },
-  { word: "Travesseiro", hint: "Objeto" },
-  { word: "Cobertor", hint: "Objeto" },
-  { word: "Lençol", hint: "Objeto" },
-  { word: "Cabideiro", hint: "Objeto" },
-  { word: "Espátula", hint: "Objeto" },
-  { word: "Ralador", hint: "Objeto" },
-  { word: "Pano", hint: "Objeto" },
-  { word: "Porta-retrato", hint: "Objeto" },
-  { word: "Tapete de entrada", hint: "Objeto" },
-  { word: "Suporte para livros", hint: "Objeto" },
-
-  // 100 Profissões
-  { word: "Médico", hint: "Profissão" },
-  { word: "Enfermeiro", hint: "Profissão" },
-  { word: "Professor", hint: "Profissão" },
-  { word: "Advogado", hint: "Profissão" },
-  { word: "Engenheiro", hint: "Profissão" },
-  { word: "Arquiteto", hint: "Profissão" },
-  { word: "Dentista", hint: "Profissão" },
-  { word: "Psicólogo", hint: "Profissão" },
-  { word: "Jornalista", hint: "Profissão" },
-  { word: "Motorista", hint: "Profissão" },
-  { word: "Piloto", hint: "Profissão" },
-  { word: "Cozinheiro", hint: "Profissão" },
-  { word: "Chef", hint: "Profissão" },
-  { word: "Marceneiro", hint: "Profissão" },
-  { word: "Pedreiro", hint: "Profissão" },
-  { word: "Eletricista", hint: "Profissão" },
-  { word: "Encanador", hint: "Profissão" },
-  { word: "Carpinteiro", hint: "Profissão" },
-  { word: "Soldador", hint: "Profissão" },
-  { word: "Farmacêutico", hint: "Profissão" },
-  { word: "Veterinário", hint: "Profissão" },
-  { word: "Bombeiro", hint: "Profissão" },
-  { word: "Policial", hint: "Profissão" },
-  { word: "Militar", hint: "Profissão" },
-  { word: "Juiz", hint: "Profissão" },
-  { word: "Promotor", hint: "Profissão" },
-  { word: "Bancário", hint: "Profissão" },
-  { word: "Caixa", hint: "Profissão" },
-  { word: "Atendente", hint: "Profissão" },
-  { word: "Recepcionista", hint: "Profissão" },
-  { word: "Programador", hint: "Profissão" },
-  { word: "Desenvolvedor", hint: "Profissão" },
-  { word: "Analista de sistemas", hint: "Profissão" },
-  { word: "Gerente", hint: "Profissão" },
-  { word: "Diretor", hint: "Profissão" },
-  { word: "Ator", hint: "Profissão" },
-  { word: "Atriz", hint: "Profissão" },
-  { word: "Cantor", hint: "Profissão" },
-  { word: "Músico", hint: "Profissão" },
-  { word: "Pintor", hint: "Profissão" },
-  { word: "Designer", hint: "Profissão" },
-  { word: "Fotógrafo", hint: "Profissão" },
-  { word: "Estilista", hint: "Profissão" },
-  { word: "Costureira", hint: "Profissão" },
-  { word: "Manicure", hint: "Profissão" },
-  { word: "Barbeiro", hint: "Profissão" },
-  { word: "Cabeleireiro", hint: "Profissão" },
-  { word: "Esteticista", hint: "Profissão" },
-  { word: "Tradutor", hint: "Profissão" },
-  { word: "Intérprete", hint: "Profissão" },
-  { word: "Bibliotecário", hint: "Profissão" },
-  { word: "Agente de viagens", hint: "Profissão" },
-  { word: "Guia turístico", hint: "Profissão" },
-  { word: "Agricultor", hint: "Profissão" },
-  { word: "Fazendeiro", hint: "Profissão" },
-  { word: "Pescador", hint: "Profissão" },
-  { word: "Jardineiro", hint: "Profissão" },
-  { word: "Paisagista", hint: "Profissão" },
-  { word: "Químico", hint: "Profissão" },
-  { word: "Físico", hint: "Profissão" },
-  { word: "Biólogo", hint: "Profissão" },
-  { word: "Matemático", hint: "Profissão" },
-  { word: "Estatístico", hint: "Profissão" },
-  { word: "Economista", hint: "Profissão" },
-  { word: "Contador", hint: "Profissão" },
-  { word: "Auditor", hint: "Profissão" },
-  { word: "Consultor", hint: "Profissão" },
-  { word: "Corretor imobiliário", hint: "Profissão" },
-  { word: "Corretor de seguros", hint: "Profissão" },
-  { word: "Vendedor", hint: "Profissão" },
-  { word: "Comerciante", hint: "Profissão" },
-  { word: "Atleta", hint: "Profissão" },
-  { word: "Treinador", hint: "Profissão" },
-  { word: "Personal trainer", hint: "Profissão" },
-  { word: "Instrutor", hint: "Profissão" },
-  { word: "Coach", hint: "Profissão" },
-  { word: "Síndico", hint: "Profissão" },
-  { word: "Secretário", hint: "Profissão" },
-  { word: "Assistente social", hint: "Profissão" },
-  { word: "Nutricionista", hint: "Profissão" },
-  { word: "Biomédico", hint: "Profissão" },
-  { word: "Radiologista", hint: "Profissão" },
-  { word: "Técnico de laboratório", hint: "Profissão" },
-  { word: "Terapeuta ocupacional", hint: "Profissão" },
-  { word: "Operador logístico", hint: "Profissão" },
-  { word: "Operador de máquina", hint: "Profissão" },
-  { word: "Cientista de dados", hint: "Profissão" },
-  { word: "Administrador", hint: "Profissão" },
-  { word: "Engenheiro de software", hint: "Profissão" },
-  { word: "Analista de negócios", hint: "Profissão" },
-  { word: "Analista financeiro", hint: "Profissão" },
-  { word: "Especialista em segurança", hint: "Profissão" },
-  { word: "Gestor de projetos", hint: "Profissão" },
-  { word: "UX designer", hint: "Profissão" },
-  { word: "UI designer", hint: "Profissão" },
-  { word: "Desenhista industrial", hint: "Profissão" },
-  { word: "Programador front-end", hint: "Profissão" },
-  { word: "Programador back-end", hint: "Profissão" },
-  { word: "Técnico em informática", hint: "Profissão" },
-  { word: "Motorista de caminhão", hint: "Profissão" },
-  { word: "Ceramista", hint: "Profissão" },
-  { word: "Ferramenteiro", hint: "Profissão" },
-  { word: "Analista de marketing", hint: "Profissão" },
-  { word: "Produtor cultural", hint: "Profissão" },
-  { word: "Diretor de arte", hint: "Profissão" },
-  { word: "Empreendedor", hint: "Profissão" },
-  { word: "Barista", hint: "Profissão" },
-  { word: "Sommelier", hint: "Profissão" }
+  // 100 Extras (mistos)
+  {word:"Pizza",hint:"Comida"},{word:"Hamburguer",hint:"Comida"},{word:"Lasanha",hint:"Comida"},{word:"Pastel",hint:"Comida"},{word:"Churrasco",hint:"Comida"},{word:"Feijoada",hint:"Comida"},{word:"Arroz",hint:"Comida"},{word:"Feijão",hint:"Comida"},{word:"Batata",hint:"Comida"},{word:"Cenoura",hint:"Comida"},
+  {word:"Alface",hint:"Comida"},{word:"Tomate",hint:"Comida"},{word:"Pepino",hint:"Comida"},{word:"Abóbora",hint:"Comida"},{word:"Couve",hint:"Comida"},{word:"Espinafre",hint:"Comida"},{word:"Quiabo",hint:"Comida"},{word:"Chuchu",hint:"Comida"},{word:"Mandioquinha",hint:"Comida"},{word:"Mandioca",hint:"Comida"},
+  {word:"Macarrão",hint:"Comida"},{word:"Sopa",hint:"Comida"},{word:"Salada",hint:"Comida"},{word:"Biscoito",hint:"Comida"},{word:"Chocolate",hint:"Comida"},{word:"Sorvete",hint:"Comida"},{word:"Bolo",hint:"Comida"},{word:"Pão",hint:"Comida"},{word:"Torta",hint:"Comida"},{word:"Café",hint:"Comida"},
+  {word:"Chá",hint:"Comida"},{word:"Suco",hint:"Comida"},{word:"Refrigerante",hint:"Comida"},{word:"Vinho",hint:"Comida"},{word:"Cerveja",hint:"Comida"},{word:"Água",hint:"Comida"},{word:"Suéter",hint:"Roupa"},{word:"Jaqueta",hint:"Roupa"},{word:"Blusa",hint:"Roupa"},{word:"Vestido",hint:"Roupa"},
+  {word:"Saia",hint:"Roupa"},{word:"Meia",hint:"Roupa"},{word:"Tênis",hint:"Roupa"},{word:"Sandália",hint:"Roupa"},{word:"Bota",hint:"Roupa"},{word:"Cinto",hint:"Roupa"},{word:"Gravata",hint:"Roupa"},{word:"Fone",hint:"Objeto"},{word:"Tablet",hint:"Objeto"},{word:"Notebook",hint:"Objeto"},
+  {word:"Drone",hint:"Objeto"},{word:"Robô",hint:"Objeto"},{word:"Satélite",hint:"Objeto"},{word:"Foguete",hint:"Objeto"},{word:"Planeta",hint:"Espaço"},{word:"Estrela",hint:"Espaço"},{word:"Lua",hint:"Espaço"},{word:"Sol",hint:"Espaço"},{word:"Galáxia",hint:"Espaço"},{word:"Cometa",hint:"Espaço"},
+  {word:"Meteorito",hint:"Espaço"},{word:"Buraco negro",hint:"Espaço"},{word:"Universo",hint:"Espaço"},{word:"Espaçonave",hint:"Espaço"},{word:"Astronauta",hint:"Espaço"},{word:"Marte",hint:"Espaço"},{word:"Júpiter",hint:"Espaço"},{word:"Saturno",hint:"Espaço"},{word:"Vênus",hint:"Espaço"},{word:"Mercúrio",hint:"Espaço"},
+  {word:"Netuno",hint:"Espaço"},{word:"Urano",hint:"Espaço"},{word:"Plutão",hint:"Espaço"},{word:"Estádio",hint:"Lugar"},{word:"Praia",hint:"Lugar"},{word:"Montanha",hint:"Lugar"},{word:"Floresta",hint:"Lugar"},{word:"Rio",hint:"Lugar"},{word:"Lago",hint:"Lugar"},{word:"Cachoeira",hint:"Lugar"},
+  {word:"Deserto",hint:"Lugar"},{word:"Cidade",hint:"Lugar"},{word:"Vila",hint:"Lugar"},{word:"Castelo",hint:"Lugar"},{word:"Palácio",hint:"Lugar"},{word:"Igreja",hint:"Lugar"},{word:"Templo",hint:"Lugar"},{word:"Escola",hint:"Lugar"},{word:"Hospital",hint:"Lugar"},{word:"Mercado",hint:"Lugar"}
 ];
 
+// ==== VARIÁVEIS ====
+let players = [];
+let impostorIndex = 0;
+let currentPlayer = 0;
+let secretWord = "";
+let gameHint = "";
+let timerInterval;
 
-let lastImpostor = null;
-const gameState = { players: [], impostorIndex: null, currentPlayer: 1, secretWord: '', hint: '', time: 0, timer: null, remainingTime: 0 };
+// ==== FUNÇÕES ====
+function showScreen(id) {
+  document.querySelectorAll(".fade").forEach(div => div.classList.remove("show"));
+  document.getElementById(id).classList.add("show");
+}
 
 function chooseRandomWord() {
-  const chosen = wordList[Math.floor(Math.random() * wordList.length)];
-  document.getElementById("secretWord").value = chosen.word;
-  document.getElementById("gameHint").value = chosen.hint;
-}
-
-function chooseImpostor(count) {
-  let impostor;
-  do { impostor = Math.floor(Math.random() * (count - 1)) + 1; } 
-  while (impostor === lastImpostor);
-  lastImpostor = impostor;
-  return impostor;
-}
-
-function showScreen(screenId) {
-  document.querySelectorAll('.fade').forEach(s => s.classList.remove('show'));
-  document.getElementById(screenId).classList.add('show');
+  const rnd = wordList[Math.floor(Math.random()*wordList.length)];
+  document.getElementById("secretWord").value = rnd.word;
+  document.getElementById("gameHint").value = rnd.hint;
 }
 
 function startGame() {
   const count = parseInt(document.getElementById("playerCount").value);
-  gameState.secretWord = document.getElementById("secretWord").value.trim();
-  gameState.hint = document.getElementById("gameHint").value.trim();
-  gameState.players = Array.from({length: count}, (_, i) => `Jogador ${i+1}`);
-  gameState.time = parseInt(document.getElementById("gameTime").value);
-  gameState.remainingTime = gameState.time * 60;
-  gameState.impostorIndex = chooseImpostor(count);
-  gameState.currentPlayer = 1;
+  secretWord = document.getElementById("secretWord").value;
+  gameHint = document.getElementById("gameHint").value;
 
-  showScreen('roleScreen');
-  showRoleScreen();
-}
+  if(!secretWord) return alert("Defina a palavra secreta ou escolha aleatória!");
 
-function showRoleScreen() {
-  document.getElementById("wordBox").classList.add("hidden");
-  document.getElementById("seeWordBtn").classList.remove("hidden");
-  document.getElementById("hideWordBtn").classList.add("hidden");
-  document.getElementById("roleTitle").textContent = `Passe para ${gameState.players[gameState.currentPlayer]}`;
-  if (gameState.currentPlayer === gameState.players.length - 1) {
-    document.getElementById("nextBtn").classList.add("hidden");
-    document.getElementById("startMatchBtn").classList.remove("hidden");
-  } else {
-    document.getElementById("nextBtn").classList.remove("hidden");
-    document.getElementById("startMatchBtn").classList.add("hidden");
-  }
+  players = Array.from({length:count}, (_,i)=>`Jogador ${i+1}`);
+  impostorIndex = Math.floor(Math.random()*count);
+  currentPlayer = 0;
+
+  document.getElementById("roleTitle").innerText = players[currentPlayer];
+  showScreen("roleScreen");
 }
 
 function seeWord() {
-  const wordBox = document.getElementById("wordBox");
-  wordBox.classList.remove("hidden");
+  if(currentPlayer === impostorIndex){
+    document.getElementById("wordBox").innerText = `Dica: ${gameHint}`;
+  } else {
+    document.getElementById("wordBox").innerText = `Palavra: ${secretWord}`;
+  }
+  document.getElementById("wordBox").classList.remove("hidden");
   document.getElementById("seeWordBtn").classList.add("hidden");
   document.getElementById("hideWordBtn").classList.remove("hidden");
-
-  wordBox.textContent = gameState.currentPlayer === gameState.impostorIndex 
-    ? `Dica: ${gameState.hint}` 
-    : `${gameState.secretWord}`;
-
-  const impostorInfo = document.createElement("p");
-  impostorInfo.className = "mt-4 font-bold";
-  impostorInfo.style.color = gameState.currentPlayer === gameState.impostorIndex ? "red" : "lime";
-  impostorInfo.textContent = gameState.currentPlayer === gameState.impostorIndex ? "Você é o impostor!" : "Você NÃO é o impostor!";
-
-  const existingInfo = wordBox.querySelector("p");
-  if (existingInfo) wordBox.removeChild(existingInfo);
-  wordBox.appendChild(impostorInfo);
 }
 
-function hideWord() { document.getElementById("wordBox").classList.add("hidden"); document.getElementById("seeWordBtn").classList.remove("hidden"); document.getElementById("hideWordBtn").classList.add("hidden"); }
+function hideWord() {
+  document.getElementById("wordBox").classList.add("hidden");
+  document.getElementById("seeWordBtn").classList.remove("hidden");
+  document.getElementById("hideWordBtn").classList.add("hidden");
+}
 
-function nextPlayer() { gameState.currentPlayer++; showRoleScreen(); }
+function nextPlayer() {
+  currentPlayer++;
+  if(currentPlayer < players.length){
+    document.getElementById("roleTitle").innerText = players[currentPlayer];
+  } else {
+    document.getElementById("nextBtn").classList.add("hidden");
+    document.getElementById("startMatchBtn").classList.remove("hidden");
+    document.getElementById("roleTitle").innerText = "Todos viram sua palavra";
+  }
+  hideWord();
+}
 
 function startMatch() {
-  showScreen('matchScreen');
-  const starter = Math.floor(Math.random() * (gameState.players.length - 1)) + 1;
-  document.getElementById("turnInfo").textContent = `${gameState.players[starter]} começa a partida!`;
+  showScreen("matchScreen");
+  const rndStart = Math.floor(Math.random()*players.length);
+  document.getElementById("turnInfo").innerText = `${players[rndStart]} começa!`;
   startTimer();
 }
 
 function startTimer() {
-  const timerText = document.getElementById("timerText");
+  const minutes = parseInt(document.getElementById("gameTime").value);
+  let total = minutes*60;
   const circle = document.querySelector(".timer-circle");
-  const radius = 90;
-  const circumference = 2 * Math.PI * radius;
-  circle.style.strokeDasharray = circumference;
-  circle.style.strokeDashoffset = circumference;
+  const dash = 565.48;
 
-  function updateTimer() {
-    let min = Math.floor(gameState.remainingTime / 60);
-    let sec = gameState.remainingTime % 60;
-    timerText.textContent = `${min}:${sec.toString().padStart(2,'0')}`;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    const min = Math.floor(total/60);
+    const sec = total%60;
+    document.getElementById("timerText").textContent = `${min}:${sec.toString().padStart(2,"0")}`;
+    const offset = dash - (dash*(total/(minutes*60)));
+    circle.style.strokeDashoffset = offset;
+    circle.setAttribute("stroke", total<30 ? "#ef4444":"#10b981");
 
-    const percent = 1 - (gameState.remainingTime / (gameState.time * 60));
-    circle.style.strokeDashoffset = circumference * (1 - percent);
-    circle.style.stroke = `hsl(${120 - percent * 120}, 100%, 50%)`; // gradiente verde -> vermelho
-
-    if (gameState.remainingTime <= 0) { clearInterval(gameState.timer); endMatch(); }
-    gameState.remainingTime--;
-  }
-
-  updateTimer();
-  gameState.timer = setInterval(updateTimer, 1000);
+    if(total<=0){ clearInterval(timerInterval); endMatch(); }
+    total--;
+  },1000);
 }
 
-function endMatch() { clearInterval(gameState.timer); showScreen('votingScreen'); showVotingScreen(); }
-
-function showVotingScreen() {
-  const voteOptions = document.getElementById("voteOptions");
-  voteOptions.innerHTML = '';
-  gameState.players.forEach((p, idx) => { if (idx === 0) return;
-    const btn = document.createElement("button");
-    btn.className = "bg-red-600 hover:bg-red-700 px-8 py-4 rounded-lg font-bold";
-    btn.textContent = `Votar em ${p}`;
-    btn.onclick = () => vote(idx);
-    voteOptions.appendChild(btn);
+function endMatch() {
+  clearInterval(timerInterval);
+  showScreen("votingScreen");
+  const voteDiv = document.getElementById("voteOptions");
+  voteDiv.innerHTML="";
+  players.forEach((p,i)=>{
+    const btn=document.createElement("button");
+    btn.textContent=p;
+    btn.className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold";
+    btn.onclick=()=>showResult(i);
+    voteDiv.appendChild(btn);
   });
 }
 
-function vote(votedIndex) {
-  showScreen('resultScreen');
-  showResult(votedIndex);
-}
-
 function showResult(votedIndex) {
-  document.getElementById("revealWord").textContent = gameState.secretWord;
-  if (votedIndex === gameState.impostorIndex) {
-    document.getElementById("resultTitle").textContent = "Vitória dos Jogadores!";
-    document.getElementById("resultMessage").textContent = `${gameState.players[votedIndex]} era o impostor!`;
+  showScreen("resultScreen");
+  document.getElementById("revealWord").innerText=secretWord;
+  if(votedIndex===impostorIndex){
+    document.getElementById("resultTitle").innerText="Acertaram!";
+    document.getElementById("resultMessage").innerText=`O impostor era ${players[impostorIndex]}!`;
   } else {
-    document.getElementById("resultTitle").textContent = "Vitória do Impostor!";
-    document.getElementById("resultMessage").textContent = `Vocês votaram em ${gameState.players[votedIndex]}, mas o impostor era ${gameState.players[gameState.impostorIndex]}!`;
+    document.getElementById("resultTitle").innerText="Erraram!";
+    document.getElementById("resultMessage").innerText=`O impostor era ${players[impostorIndex]}, mas vocês votaram em ${players[votedIndex]}.`;
   }
 }
 
-function resetGame() { showScreen('setupScreen'); }
+function resetGame(){
+  showScreen("setupScreen");
+  document.getElementById("nextBtn").classList.remove("hidden");
+  document.getElementById("startMatchBtn").classList.add("hidden");
+  document.getElementById("wordBox").classList.add("hidden");
+}
 </script>
 </body>
 </html>
